@@ -9,5 +9,6 @@ urlpatterns = [
     path('instructor/', views.instructor_dashboard, name='instructor_dashboard'),
     path('admin/', views.admin_dashboard, name='admin_dashboard'),
     path('session/<int:session_pk>/terminate/', views.terminate_session, name='terminate_session'),
+    path('admin/api/stats/', views.admin_dashboard_api, name='admin_dashboard_api'),
 ]
 
