@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}My Courses | LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <h2 class="h3 mb-1 text-dark fw-bold">My Enrolled Courses</h2>
+        <p class="text-muted small mb-0">Track your curriculum, active lecture progression, and earned certifications.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'enrollments:my_certificates' %}" class="btn btn-outline-dark btn-sm">
+            &#127942; My Certificates &amp; Badges
+        </a>
+        <a href="{% url 'courses:course_list' %}" class="btn btn-dark btn-sm">
+            Browse Catalog &rarr;
+        </a>
+    </div>
+</div>
+
+{% if enrollments %}
+    <div class="row g-4">
+        {% for enrollment in enrollments %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-3 h-100 overflow-hidden d-flex flex-column">
+                    {% if enrollment.course.thumbnail %}
+                        <img src="{{ enrollment.course.thumbnail.url }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ enrollment.course.title }}">
+                    {% else %}
+                        <div class="bg-light text-center py-5 border-bottom">
+                            <span class="text-secondary fw-semibold small text-uppercase">{{ enrollment.course.category.name|default:"ACADEMIC COURSE" }}</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body p-4 d-flex flex-column flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-light text-dark border">{{ enrollment.course.get_level_display|default:"All Levels" }}</span>
+                            {% if enrollment.is_completed %}
+                                <span class="badge bg-dark text-white">&check; Completed</span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border">In Progress</span>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="card-title fw-bold text-dark mb-1">{{ enrollment.course.title }}</h5>
+                        <p class="text-muted small mb-3">Instructor: {{ enrollment.course.instructor.get_full_name|default:enrollment.course.instructor.username }}</p>
+
+                        <!-- Progress Bar -->
+                        <div class="my-3">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span class="text-muted">Curriculum Progress</span>
+                                <span class="fw-bold text-dark">{{ enrollment.progress_percent }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-dark" role="progressbar" style="width: {{ enrollment.progress_percent }}%;" aria-valuenow="{{ enrollment.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-top mt-auto d-flex align-items-center justify-content-between">
+                            {% if enrollment.is_completed and enrollment.certificate %}
+                                <a href="{% url 'enrollments:verify_certificate' enrollment.certificate.certificate_uid %}" class="btn btn-sm btn-outline-dark">
+                                    &#128220; View Certificate
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">{{ enrollment.course.lessons.count }} Lecture{{ enrollment.course.lessons.count|pluralize }}</span>
+                            {% endif %}
+
+                            <a href="{% url 'courses:course_detail' enrollment.course.slug %}" class="btn btn-dark btn-sm px-3">
+                                {% if enrollment.is_completed %}Review Course{% else %}Resume Learning &rarr;{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card text-center p-5 border-0 shadow-sm rounded-3">
+        <div class="py-5">
+            <h5 class="fw-bold text-dark mb-2">No Active Enrollments</h5>
+            <p class="text-muted small mb-4">You have not enrolled in any academic courses yet. Discover our curriculum catalog.</p>
+            <a href="{% url 'courses:course_list' %}" class="btn btn-dark px-4 py-2">
+                Explore Available Courses &rarr;
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

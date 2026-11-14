@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Enterprise LMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-9 col-xl-8">
+        <!-- Breadcrumb Navigation -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+                <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-1 text-dark fw-bold">{{ title }}</h4>
+                        <p class="text-muted small mb-0">Configure curriculum details, monetization pricing, and enrollment requirements.</p>
+                    </div>
+                    <span class="badge bg-light text-dark border px-3 py-2">Instructor Studio</span>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger small mb-4">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" novalidate id="courseForm">
+                    {% csrf_token %}
+
+                    <!-- Section 1: Course Identity & Basics -->
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-dark text-white rounded-pill">1</span>
+                            <h5 class="fw-bold text-dark mb-0">Basic Course Information</h5>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold text-dark">Course Title <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                            {% if form.title.help_text %}<div class="form-text">{{ form.title.help_text }}</div>{% endif %}
+                            {% for error in form.title.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.slug.id_for_label }}" class="form-label fw-semibold text-dark">URL Slug</label>
+                                {{ form.slug }}
+                                <div class="form-text">{{ form.slug.help_text }}</div>
+                                {% for error in form.slug.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold text-dark">Academic Category</label>
+                                {{ form.category }}
+                                {% for error in form.category.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.level.id_for_label }}" class="form-label fw-semibold text-dark">Target Difficulty Level</label>
+                                {{ form.level }}
+                                {% for error in form.level.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.language.id_for_label }}" class="form-label fw-semibold text-dark">Instruction Language</label>
+                                {{ form.language }}
+                                {% for error in form.language.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Pricing & Monetization -->
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-dark text-white rounded-pill">2</span>
+                                <h5 class="fw-bold text-dark mb-0">Pricing & Monetization Strategy</h5>
+                            </div>
+                            <span class="badge bg-light text-dark border">Currency: USD ($)</span>
+                        </div>
+
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <div class="form-check form-switch mb-1">
+                                {{ form.is_free }}
+                                <label class="form-check-label fw-bold text-dark" for="{{ form.is_free.id_for_label }}">
+                                    Offer this course for Free
+                                </label>
+                            </div>
+                            <p class="text-muted small mb-0 ms-4 ps-1">
+                                Check this option if you want to provide complimentary open access without charging tuition fees.
+                            </p>
+                            {% for error in form.is_free.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <!-- Paid Pricing Input Container -->
+                        <div id="pricingFieldsContainer" class="p-3 border rounded-3 bg-white mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.price.id_for_label }}" class="form-label fw-semibold text-dark">
+                                        Standard Tuition Price ($) <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-dark fw-semibold">$</span>
+                                        {{ form.price }}
+                                    </div>
+                                    <div class="form-text">{{ form.price.help_text }}</div>
+                                    {% for error in form.price.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="{{ form.discount_price.id_for_label }}" class="form-label fw-semibold text-dark">
+                                        Promotional Discount Price ($)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-dark fw-semibold">$</span>
+                                        {{ form.discount_price }}
+                                    </div>
+                                    <div class="form-text">{{ form.discount_price.help_text }}</div>
+                                    {% for error in form.discount_price.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Live Price Preview Box -->
+                            <div id="livePricingPreview" class="mt-3 p-3 bg-light rounded-2 border d-none">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="text-muted small d-block">Student Will Pay:</span>
+                                        <div class="d-flex align-items-baseline gap-2">
+                                            <span id="previewEffectivePrice" class="fs-4 fw-bold text-dark">$0.00</span>
+                                            <span id="previewOriginalPrice" class="text-muted text-decoration-line-through small d-none">$0.00</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span id="previewDiscountBadge" class="badge bg-dark text-white d-none">0% OFF</span>
+                                        <div id="previewSavings" class="text-success small fw-semibold mt-1 d-none">Save $0.00</div>
+                                    </div>
+                                </div>
+                                <div id="pricingAlert" class="text-danger small mt-2 d-none"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Course Media & Preview -->
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-dark text-white rounded-pill">3</span>
+                            <h5 class="fw-bold text-dark mb-0">Course Media & Assets</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.thumbnail.id_for_label }}" class="form-label fw-semibold text-dark">Course Thumbnail Image</label>
+                                {{ form.thumbnail }}
+                                <div class="form-text">Recommended size: 1280x720 (16:9 ratio, JPG or PNG).</div>
+                                {% for error in form.thumbnail.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.preview_video_url.id_for_label }}" class="form-label fw-semibold text-dark">Trailer / Preview Video URL</label>
+                                {{ form.preview_video_url }}
+                                <div class="form-text">Direct MP4 URL or public YouTube/Vimeo introduction video.</div>
+                                {% for error in form.preview_video_url.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Curriculum Outcomes & Prerequisites -->
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-dark text-white rounded-pill">4</span>
+                            <h5 class="fw-bold text-dark mb-0">Curriculum Details & Learning Outcomes</h5>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold text-dark">Course Overview & Syllabus <span class="text-danger">*</span></label>
+                            {{ form.description }}
+                            {% for error in form.description.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.what_you_will_learn.id_for_label }}" class="form-label fw-semibold text-dark">What Students Will Learn</label>
+                                {{ form.what_you_will_learn }}
+                                <div class="form-text">Bullet points or key takeaways (one per line).</div>
+                                {% for error in form.what_you_will_learn.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.requirements.id_for_label }}" class="form-label fw-semibold text-dark">Prerequisites & Requirements</label>
+                                {{ form.requirements }}
+                                <div class="form-text">Prior knowledge or materials required before starting.</div>
+                                {% for error in form.requirements.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Publishing Status & Action -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-dark text-white rounded-pill">5</span>
+                            <h5 class="fw-bold text-dark mb-0">Publishing Status</h5>
+                        </div>
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-6">
+                                <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold text-dark">Lifecycle Status</label>
+                                {{ form.status }}
+                                <div class="form-text">Select 'Published' when ready for students to enroll and view content.</div>
+                                {% for error in form.status.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action Buttons -->
+                    <div class="d-flex align-items-center justify-content-between pt-4 border-top mt-4">
+                        <a href="{% url 'courses:course_list' %}" class="btn btn-outline-secondary px-4">
+                            &larr; Cancel
+                        </a>
+                        <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold">
+                            Save Course Details
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isFreeToggle = document.getElementById('id_is_free');
+    const pricingContainer = document.getElementById('pricingFieldsContainer');
+    const priceInput = document.getElementById('id_price');
+    const discountPriceInput = document.getElementById('id_discount_price');
+    
+    const livePricingPreview = document.getElementById('livePricingPreview');
+    const previewEffectivePrice = document.getElementById('previewEffectivePrice');
+    const previewOriginalPrice = document.getElementById('previewOriginalPrice');
+    const previewDiscountBadge = document.getElementById('previewDiscountBadge');
+    const previewSavings = document.getElementById('previewSavings');
+    const pricingAlert = document.getElementById('pricingAlert');
+
+    function updatePricingState() {
+        if (!isFreeToggle) return;
+        const isFree = isFreeToggle.checked;
+
+        if (isFree) {
+            pricingContainer.style.opacity = '0.5';
+            priceInput.disabled = true;
+            discountPriceInput.disabled = true;
+            livePricingPreview.classList.add('d-none');
+            pricingAlert.classList.add('d-none');
+        } else {
+            pricingContainer.style.opacity = '1';
+            priceInput.disabled = false;
+            discountPriceInput.disabled = false;
+            calculateLivePricing();
+        }
+    }
+
+    function calculateLivePricing() {
+        if (!priceInput || isFreeToggle.checked) return;
+        
+        const price = parseFloat(priceInput.value) || 0;
+        const discountPrice = parseFloat(discountPriceInput.value) || 0;
+
+        pricingAlert.classList.add('d-none');
+        pricingAlert.textContent = '';
+
+        if (price <= 0) {
+            livePricingPreview.classList.add('d-none');
+            return;
+        }
+
+        livePricingPreview.classList.remove('d-none');
+
+        if (discountPrice > 0) {
+            if (discountPrice >= price) {
+                pricingAlert.textContent = 'Promotional discount price ($' + discountPrice.toFixed(2) + ') must be strictly lower than standard price ($' + price.toFixed(2) + ').';
+                pricingAlert.classList.remove('d-none');
+                previewEffectivePrice.textContent = '$' + price.toFixed(2);
+                previewOriginalPrice.classList.add('d-none');
+                previewDiscountBadge.classList.add('d-none');
+                previewSavings.classList.add('d-none');
+            } else {
+                const savings = (price - discountPrice).toFixed(2);
+                const percent = Math.round(((price - discountPrice) / price) * 100);
+
+                previewEffectivePrice.textContent = '$' + discountPrice.toFixed(2);
+                previewOriginalPrice.textContent = '$' + price.toFixed(2);
+                previewOriginalPrice.classList.remove('d-none');
+
+                previewDiscountBadge.textContent = percent + '% OFF';
+                previewDiscountBadge.classList.remove('d-none');
+
+                previewSavings.textContent = 'Save $' + savings;
+                previewSavings.classList.remove('d-none');
+            }
+        } else {
+            previewEffectivePrice.textContent = '$' + price.toFixed(2);
+            previewOriginalPrice.classList.add('d-none');
+            previewDiscountBadge.classList.add('d-none');
+            previewSavings.classList.add('d-none');
+        }
+    }
+
+    if (isFreeToggle) {
+        isFreeToggle.addEventListener('change', updatePricingState);
+    }
+    if (priceInput) {
+        priceInput.addEventListener('input', calculateLivePricing);
+    }
+    if (discountPriceInput) {
+        discountPriceInput.addEventListener('input', calculateLivePricing);
+    }
+
+    // Initialize state on page load
+    updatePricingState();
+});
+</script>
+{% endblock %}

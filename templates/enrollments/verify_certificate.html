@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Accreditation: {{ certificate.certificate_id }} | LMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-9">
+        <!-- Verification Banner -->
+        <div class="alert bg-white border border-secondary border-opacity-25 rounded-3 p-3 p-md-4 mb-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-success fs-1">&check;</div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">Official Verification: Valid Accreditation</h5>
+                    <p class="text-secondary small mb-0">
+                        This digital credential was issued by <strong>Enterprise LMS Academic Board</strong> and is cryptographically authenticated.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rendered Certificate Frame -->
+        <div class="card border border-2 border-dark shadow-sm rounded-3 p-4 p-md-5 mb-4 position-relative bg-white" style="border-width: 4px !important;">
+            <div class="text-center">
+                <span class="badge bg-light text-dark border px-3 py-1 text-uppercase mb-3">Enterprise Accreditation Record</span>
+                <h1 class="h2 fw-bold text-dark text-uppercase tracking-wider mb-2">Certificate of Completion</h1>
+                <p class="text-muted small mb-4">This hereby certifies that</p>
+
+                <div class="display-6 fw-bold text-dark mb-3">
+                    {{ student.get_full_name|default:student.username }}
+                </div>
+
+                <p class="text-secondary small mb-3">has successfully fulfilled and demonstrated mastery of all requirements for</p>
+
+                <h3 class="fw-bold text-dark mb-4">{{ course.title }}</h3>
+
+                <p class="text-muted small mx-auto mb-4" style="max-width: 600px;">
+                    Under the academic evaluation of instructor <strong>{{ instructor.get_full_name|default:instructor.username }}</strong>, completing comprehensive lectures, assessments, and projects.
+                </p>
+
+                <hr class="my-4">
+
+                <div class="row align-items-center text-start">
+                    <div class="col-md-4">
+                        <div class="small text-muted text-uppercase">Accreditation ID</div>
+                        <div class="fw-bold text-dark font-monospace">{{ certificate.certificate_id }}</div>
+                    </div>
+                    <div class="col-md-4 text-md-center my-3 my-md-0">
+                        <div class="small text-muted text-uppercase">Issuance Date</div>
+                        <div class="fw-bold text-dark">{{ certificate.issued_at|date:"F d, Y" }}</div>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="small text-muted text-uppercase">Verification Status</div>
+                        <span class="badge bg-dark text-white px-3 py-1">Authentic &amp; Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Download Section -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 text-center">
+            <h6 class="fw-bold text-dark mb-2">Export Digital Credential</h6>
+            <p class="text-secondary small mb-3">Download the high-resolution, print-ready PDF certificate with embedded QR verification code.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'enrollments:download_certificate' certificate.certificate_uid %}" class="btn btn-dark px-4 py-2">
+                    Download PDF Certificate &darr;
+                </a>
+                <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-outline-secondary px-4 py-2">
+                    View Course Syllabus
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

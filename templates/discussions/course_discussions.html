@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Discussions: {{ course.title }} | LMS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course.slug %}" class="text-secondary text-decoration-none">{{ course.title }}</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Q&amp;A Community</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Main Discussions Column -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">Course Q&amp;A Forum</h4>
+                    <span class="text-muted small">Collaborative inquiry &amp; peer problem solving</span>
+                </div>
+                <a href="{% url 'discussions:thread_create' course.slug %}" class="btn btn-dark btn-sm px-3">
+                    + Ask a Question
+                </a>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <form method="get" class="row g-2 align-items-center mb-3">
+                <div class="col-sm-7">
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Search questions or keywords...">
+                </div>
+                <div class="col-sm-3">
+                    <select name="filter" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Threads</option>
+                        <option value="unresolved" {% if filter_type == 'unresolved' %}selected{% endif %}>Unresolved</option>
+                        <option value="resolved" {% if filter_type == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="mine" {% if filter_type == 'mine' %}selected{% endif %}>My Questions</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <button type="submit" class="btn btn-outline-dark btn-sm w-100">Filter</button>
+                </div>
+            </form>
+
+            <!-- Thread List -->
+            <div class="d-flex flex-column gap-3">
+                {% for thread in threads %}
+                    <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                {% if thread.is_resolved %}
+                                    <span class="badge bg-dark text-white">&check; Solved</span>
+                                {% else %}
+                                    <span class="badge bg-white text-secondary border">Open</span>
+                                {% endif %}
+                                {% if thread.lesson %}
+                                    <span class="badge bg-light text-dark border">Lecture {{ thread.lesson.order }}</span>
+                                {% endif %}
+                                <span class="text-muted small">Posted by <strong>{{ thread.author.get_full_name|default:thread.author.username }}</strong> &bull; {{ thread.created_at|date:"M d, Y" }}</span>
+                            </div>
+
+                            <h6 class="fw-bold text-dark mb-1">
+                                <a href="{% url 'discussions:thread_detail' thread.pk %}" class="text-dark text-decoration-none">
+                                    {{ thread.title }}
+                                </a>
+                            </h6>
+                            <p class="text-secondary small mb-0">{{ thread.content|truncatewords:25 }}</p>
+                        </div>
+
+                        <div class="text-end ps-3">
+                            <div class="badge bg-white text-dark border px-3 py-2">
+                                <span class="fw-bold">{{ thread.replies_count }}</span>
+                                <div class="text-muted" style="font-size: 0.65rem;">REPLIES</div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5 text-muted small">
+                        No discussion threads found. Be the first to ask a question!
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcements Column -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold text-dark mb-0">Announcements</h6>
+                {% if is_instructor %}
+                    <a href="{% url 'discussions:create_announcement' course.slug %}" class="btn btn-sm btn-outline-dark">
+                        + New
+                    </a>
+                {% endif %}
+            </div>
+
+            {% for ann in announcements %}
+                <div class="p-3 bg-light rounded-3 border mb-3">
+                    <div class="fw-bold text-dark small mb-1">{{ ann.title }}</div>
+                    <p class="text-secondary small mb-2">{{ ann.content|linebreaks }}</p>
+                    <span class="text-muted small" style="font-size: 0.7rem;">{{ ann.created_at|date:"M d, Y" }} &bull; {{ ann.instructor.get_full_name|default:ann.instructor.username }}</span>
+                </div>
+            {% empty %}
+                <div class="text-muted small py-3">No announcements posted yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

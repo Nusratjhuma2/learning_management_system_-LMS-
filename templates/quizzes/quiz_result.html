@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Evaluation Report: {{ quiz.title }} | LMS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course.slug %}" class="text-secondary text-decoration-none">{{ course.title }}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="text-secondary text-decoration-none">{{ quiz.title }}</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Result Report</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Results Summary Card -->
+        <div class="card border-0 shadow-sm rounded-3 text-center p-4 p-md-5 mb-4">
+            <div class="mb-3">
+                <span class="badge bg-light text-dark border px-3 py-1">Evaluation Summary</span>
+            </div>
+
+            <h2 class="h3 fw-bold text-dark mb-1">{{ quiz.title }}</h2>
+            <p class="text-muted small mb-4">Candidate: <span class="text-dark fw-semibold">{{ attempt.student.get_full_name|default:attempt.student.username }}</span> &bull; Submitted: {{ attempt.submitted_at|date:"M d, Y - H:i" }}</p>
+
+            <div class="p-4 bg-light rounded-3 border mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6 border-end">
+                        <div class="text-muted small text-uppercase fw-semibold mb-1">Final Score</div>
+                        <div class="display-4 fw-bold text-dark">{{ attempt.score }}%</div>
+                        <div class="text-secondary small mt-1">{{ correct }} of {{ total }} questions correct</div>
+                    </div>
+                    <div class="col-md-6 mt-3 mt-md-0">
+                        <div class="text-muted small text-uppercase fw-semibold mb-1">Status Verdict</div>
+                        {% if attempt.is_disqualified %}
+                            <div class="fs-4 fw-bold text-danger">Disqualified</div>
+                            <span class="badge bg-danger text-white mt-1">Anti-Cheat Violation Limit Exceeded</span>
+                        {% elif attempt.passed %}
+                            <div class="fs-4 fw-bold text-dark">&check; Passed</div>
+                            <span class="badge bg-dark text-white mt-1">Met Requirement (&ge; {{ quiz.pass_mark_percent }}%)</span>
+                        {% else %}
+                            <div class="fs-4 fw-bold text-secondary">&times; Unsatisfactory</div>
+                            <span class="badge bg-light text-secondary border mt-1">Below Passing Mark ({{ quiz.pass_mark_percent }}%)</span>
+                        {% endif %}
+
+                        <div class="mt-2 text-muted small">
+                            Security Violations: <strong class="text-dark">{{ attempt.tab_switch_count }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-outline-secondary px-4">
+                    Assessment Overview
+                </a>
+                <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-dark px-4">
+                    Return to Course
+                </a>
+            </div>
+        </div>
+
+        <!-- Question Breakdown with Explanations -->
+        <h5 class="fw-bold text-dark mb-3">Assessment Breakdown &amp; Explanations</h5>
+
+        {% for ans in answers %}
+            <div class="card border rounded-3 p-4 mb-3 shadow-sm {% if ans.is_correct %}border-start border-start-4 border-success{% else %}border-start border-start-4 border-secondary{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark">Q{{ forloop.counter }}. {{ ans.question.text }}</span>
+                    {% if ans.is_correct %}
+                        <span class="badge bg-light text-success border border-success border-opacity-25">&check; Correct (+{{ ans.points_awarded }})</span>
+                    {% else %}
+                        <span class="badge bg-light text-secondary border">&times; Incorrect (0)</span>
+                    {% endif %}
+                </div>
+
+                <!-- Answer review -->
+                <div class="my-2 p-3 bg-light rounded-3 small">
+                    {% if ans.question.question_type == 'short_answer' %}
+                        <div>Your Answer: <strong class="text-dark">{{ ans.text_answer|default:"(None provided)" }}</strong></div>
+                        <div class="text-muted mt-1">Accepted Solution: <span class="text-dark fw-semibold">{{ ans.question.short_answer_solution }}</span></div>
+                    {% else %}
+                        <div>Your Selection:
+                            <strong class="text-dark">
+                                {% for sc in ans.selected_choices.all %}
+                                    {{ sc.text }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    {{ ans.selected_choice.text|default:"(No answer submitted)" }}
+                                {% endfor %}
+                            </strong>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if ans.question.explanation %}
+                    <div class="mt-2 pt-2 border-top small text-secondary">
+                        <span class="fw-semibold text-dark">Explanation:</span> {{ ans.question.explanation }}
+                    </div>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="card p-4 text-center text-muted border-0 shadow-sm">
+                No recorded question responses.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

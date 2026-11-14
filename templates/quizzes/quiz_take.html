@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Examination: {{ quiz.title }} | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Focus mode and proctoring aesthetics */
+    body {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .question-card {
+        transition: border-color 0.2s ease;
+    }
+    .question-card:hover {
+        border-color: #cbd5e1 !important;
+    }
+    .form-check-input:checked {
+        background-color: #0f172a;
+        border-color: #0f172a;
+    }
+    .quiz-timer-pill {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 1px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hidden Anti-Cheat Configuration Element -->
+<div id="quiz-anticheat-config"
+     data-quiz-id="{{ quiz.pk }}"
+     data-attempt-id="{{ attempt.pk }}"
+     data-time-limit-minutes="{{ quiz.time_limit_minutes }}"
+     data-seconds-remaining="{{ seconds_remaining }}"
+     data-enforce-anticheat="{{ quiz.enforce_anticheat|yesno:'true,false' }}"
+     data-tab-switch-url="{% url 'quizzes:log_tab_switch' quiz.pk %}"
+     data-csrf-token="{{ csrf_token }}">
+</div>
+
+<!-- Fullscreen Start Overlay Modal (if anti-cheat enabled) -->
+{% if quiz.enforce_anticheat %}
+<div id="quiz-start-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75" style="z-index: 10500;">
+    <div class="card border-0 shadow-lg p-4 p-md-5 text-center rounded-4" style="max-width: 540px;">
+        <div class="mb-3 text-dark fs-1">&#128737;&#65039;</div>
+        <h3 class="fw-bold text-dark mb-2">Proctored Assessment Mode</h3>
+        <p class="text-secondary small mb-4">
+            You are about to launch a secured examination session for <strong>{{ quiz.title }}</strong>. Fullscreen mode will be locked. Switching tabs or opening external windows will trigger security warnings and eventual disqualification.
+        </p>
+        <div class="bg-light p-3 rounded-3 text-start small text-muted mb-4 border">
+            <div>&bull; Assessment Duration: <strong>{% if quiz.time_limit_minutes > 0 %}{{ quiz.time_limit_minutes }} Minutes{% else %}Untimed{% endif %}</strong></div>
+            <div>&bull; Passing Threshold: <strong>{{ quiz.pass_mark_percent }}%</strong></div>
+            <div>&bull; Allowed Tab Switches: <strong>Maximum 2</strong> (3rd triggers disqualification)</div>
+        </div>
+        <button id="btn-start-fullscreen" type="button" class="btn btn-dark py-2 px-4 fw-semibold w-100">
+            Enter Fullscreen &amp; Begin Assessment
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Anti-Cheat Violation Alert Modal -->
+<div id="anticheat-warning-modal" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75 d-none" style="z-index: 10600;">
+    <div class="card border-danger border-2 shadow-lg p-4 text-center rounded-3" style="max-width: 480px;">
+        <div class="text-danger fs-1 mb-2">&#9888;&#65039;</div>
+        <h4 id="anticheat-warning-title" class="fw-bold text-danger mb-2">Proctoring Warning</h4>
+        <p id="anticheat-warning-text" class="text-secondary small mb-4">
+            You navigated away from this examination window!
+        </p>
+        <button id="btn-close-warning" type="button" class="btn btn-danger px-4">
+            Acknowledge &amp; Return to Examination
+        </button>
+    </div>
+</div>
+
+<!-- Header Proctoring Bar (Sticky Top) -->
+<div class="card border-0 shadow-sm rounded-3 mb-4 sticky-top" style="top: 15px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);">
+    <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-bold text-dark mb-0">{{ quiz.title }}</h5>
+            <span class="text-muted small">Course: {{ course.title }}</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2 bg-light px-3 py-2 rounded-3 border">
+                <span class="text-muted small text-uppercase fw-semibold">&#9201; Time Left:</span>
+                <span id="quiz-timer-display" class="quiz-timer-pill fw-bold text-dark fs-5">--:--</span>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-dark px-3 py-2" onclick="document.getElementById('quiz-form').requestSubmit();">
+                Submit Assessment
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Examination Questions Form -->
+<form id="quiz-form" method="post" action="{% url 'quizzes:quiz_submit' quiz.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="attempt_id" value="{{ attempt.pk }}">
+    <input type="hidden" id="input-tab-switch-count" name="tab_switch_count" value="{{ attempt.tab_switch_count }}">
+    <input type="hidden" id="input-is-disqualified" name="is_disqualified" value="false">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            {% for question in questions %}
+                <div class="card border question-card shadow-sm rounded-3 p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-light text-secondary border">Question {{ forloop.counter }} of {{ questions|length }}</span>
+                        <span class="badge bg-white text-muted border">{{ question.points }} Point{{ question.points|pluralize }}</span>
+                    </div>
+
+                    <h5 class="fw-semibold text-dark mb-3">{{ question.text }}</h5>
+
+                    <!-- Question Type: Single Choice or True/False -->
+                    {% if question.question_type == 'single_choice' or question.question_type == 'true_false' %}
+                        <div class="d-flex flex-column gap-2 mt-2">
+                            {% for choice in question.shuffled_choices %}
+                                <label class="p-3 bg-light rounded-3 border d-flex align-items-center gap-3 cursor-pointer" for="choice_{{ choice.pk }}">
+                                    <input class="form-check-input mt-0" type="radio"
+                                           name="question_{{ question.pk }}"
+                                           id="choice_{{ choice.pk }}"
+                                           value="{{ choice.pk }}" required>
+                                    <span class="text-dark small fw-medium">{{ choice.text }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+
+                    <!-- Question Type: Multiple Choice (Select All that Apply) -->
+                    {% elif question.question_type == 'multiple_choice' %}
+                        <p class="text-muted small mb-2 fst-italic">Select all answers that apply:</p>
+                        <div class="d-flex flex-column gap-2">
+                            {% for choice in question.shuffled_choices %}
+                                <label class="p-3 bg-light rounded-3 border d-flex align-items-center gap-3 cursor-pointer" for="choice_{{ choice.pk }}">
+                                    <input class="form-check-input mt-0" type="checkbox"
+                                           name="question_{{ question.pk }}"
+                                           id="choice_{{ choice.pk }}"
+                                           value="{{ choice.pk }}">
+                                    <span class="text-dark small fw-medium">{{ choice.text }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+
+                    <!-- Question Type: Short Answer -->
+                    {% elif question.question_type == 'short_answer' %}
+                        <div class="mt-2">
+                            <label class="form-label small text-muted">Type your answer below:</label>
+                            <input type="text"
+                                   name="question_{{ question.pk }}"
+                                   class="form-control form-control-lg border bg-white"
+                                   placeholder="Your exact response..."
+                                   autocomplete="off" required>
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="card p-5 text-center text-muted border-0 shadow-sm">
+                    No questions have been configured for this quiz yet.
+                </div>
+            {% endfor %}
+
+            <div class="card border-0 shadow-sm rounded-3 p-4 mb-5 text-center">
+                <p class="text-secondary small mb-3">
+                    Ensure all questions have been reviewed before final submission. Once submitted, your score will be computed immediately.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="submit" class="btn btn-dark px-5 py-2 fw-semibold">
+                        Confirm &amp; Submit Completed Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/quiz-anticheat.js' %}"></script>
+{% endblock %}
+

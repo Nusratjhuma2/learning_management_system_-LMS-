@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Assessment: {{ quiz.title }} | LMS{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' quiz.course.slug %}" class="text-secondary text-decoration-none">{{ quiz.course.title }}</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Manage Quiz</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3">Quiz Settings</h5>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text small text-muted">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-dark w-100">Update Settings</button>
+            </form>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h6 class="fw-bold text-dark mb-2">Actions</h6>
+            <div class="d-flex flex-column gap-2">
+                <a href="{% url 'quizzes:quiz_attempts_list' quiz.pk %}" class="btn btn-outline-dark text-start">
+                    View Student Attempts
+                </a>
+                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-outline-secondary text-start">
+                    Preview Student View
+                </a>
+                <a href="{% url 'quizzes:quiz_delete' quiz.pk %}" class="btn btn-outline-danger text-start">
+                    Delete Quiz
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-dark mb-0">Questions ({{ questions.count }})</h5>
+                <a href="{% url 'quizzes:question_create' quiz.pk %}" class="btn btn-sm btn-dark">
+                    + Add Question
+                </a>
+            </div>
+
+            {% for question in questions %}
+                <div class="border rounded-3 p-3 mb-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-white text-dark border me-1">Q{{ forloop.counter }}</span>
+                            <span class="badge bg-light text-secondary border me-1">{{ question.get_question_type_display }}</span>
+                            <span class="badge bg-light text-secondary border">{{ question.points }} pt{{ question.points|pluralize }}</span>
+                        </div>
+                        <form method="post" action="{% url 'quizzes:question_delete' question.pk %}" onsubmit="return confirm('Remove question?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm text-danger border-0 p-0">Delete</button>
+                        </form>
+                    </div>
+
+                    <p class="fw-semibold text-dark small mb-2">{{ question.text }}</p>
+
+                    {% if question.question_type == 'short_answer' %}
+                        <div class="small text-muted bg-white p-2 rounded border">
+                            Accepted answer: <span class="fw-semibold text-dark">{{ question.short_answer_solution }}</span>
+                        </div>
+                    {% else %}
+                        <div class="small">
+                            {% for c in question.choices.all %}
+                                <div class="{% if c.is_correct %}text-dark fw-bold{% else %}text-muted{% endif %}">
+                                    &bull; {{ c.text }} {% if c.is_correct %}<span class="badge bg-light text-dark border ms-1">&check; Correct</span>{% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="text-center py-5 text-muted small">
+                    No questions added yet. Click "+ Add Question" to begin.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account | LMS Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-7 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-bottom py-4 text-center">
+                <span class="badge bg-light text-dark border px-3 py-1 mb-2">Academic Registration</span>
+                <h4 class="mb-1 text-dark fw-bold">Register Account</h4>
+                <p class="text-muted small mb-0">Join as a student candidate or course instructor</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form id="signup-form" method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger py-2 small mb-3 border-0">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold text-dark">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text small text-muted">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1 fw-medium">&bull; {{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+
+                    <button id="btn-submit-signup" type="submit" class="btn btn-dark w-100 py-2.5 mt-3 fw-semibold">
+                        Complete Registration
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top">
+                    <span class="text-muted small">Already registered?</span>
+                    <a href="{% url 'accounts:login' %}" class="small fw-semibold text-dark ms-1 text-decoration-none">Sign in here &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('signup-form');
+    const submitBtn = document.getElementById('btn-submit-signup');
+    if (form && submitBtn) {
+        form.addEventListener('submit', function () {
+            // Prevent multiple rapid clicks causing race conditions
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering Account...';
+        });
+    }
+});
+</script>
+{% endblock %}

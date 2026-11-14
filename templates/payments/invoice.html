@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoice: {{ order.order_id }} | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    body {
+        background: #fff !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <!-- Action Toolbar (Hidden during print) -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-outline-secondary btn-sm">
+                &larr; Access Enrolled Course
+            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print();">
+                    &#128424; Print Invoice
+                </button>
+                <a href="{% url 'payments:order_history' %}" class="btn btn-dark btn-sm">
+                    Order History
+                </a>
+            </div>
+        </div>
+
+        <!-- Printable Invoice Container -->
+        <div class="card border rounded-3 p-4 p-md-5 bg-white shadow-sm">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">ENTERPRISE LMS</h3>
+                    <div class="text-muted small">Academic Accreditation &amp; Learning Systems</div>
+                    <div class="text-secondary small mt-1">Tax ID: LMS-99482-TX &bull; support@lms.local</div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-dark text-white px-3 py-1 text-uppercase">Paid &bull; Confirmed</span>
+                    <h5 class="fw-bold text-dark mt-2 mb-0">INVOICE</h5>
+                    <div class="text-muted small font-monospace">{{ order.order_id }}</div>
+                </div>
+            </div>
+
+            <!-- Client & Order Details -->
+            <div class="row mb-4">
+                <div class="col-sm-6">
+                    <h6 class="text-uppercase text-muted small fw-semibold">Billed To:</h6>
+                    <div class="fw-bold text-dark">{{ student.get_full_name|default:student.username }}</div>
+                    <div class="text-secondary small">{{ student.email }}</div>
+                    <div class="text-muted small">Account ID: #{{ student.pk }}</div>
+                </div>
+                <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                    <h6 class="text-uppercase text-muted small fw-semibold">Order Information:</h6>
+                    <div class="small text-secondary">
+                        <div>Date: <strong class="text-dark">{{ order.created_at|date:"F d, Y - H:i" }}</strong></div>
+                        <div>Payment Ref: <span class="font-monospace text-dark fw-semibold">{{ order.transaction_id|default:"N/A" }}</span></div>
+                        <div>Status: <span class="text-success fw-bold">Settled</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th>Item Description</th>
+                            <th class="text-center" style="width: 100px;">Qty</th>
+                            <th class="text-end" style="width: 130px;">Unit Price</th>
+                            <th class="text-end" style="width: 130px;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">{{ course.title }}</div>
+                                <div class="text-muted small">Instructor: {{ instructor.get_full_name|default:instructor.username }}</div>
+                            </td>
+                            <td class="text-center">1</td>
+                            <td class="text-end">${{ order.original_amount }}</td>
+                            <td class="text-end">${{ order.original_amount }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="small">
+                        <tr>
+                            <td colspan="3" class="text-end text-muted">Subtotal:</td>
+                            <td class="text-end text-dark fw-semibold">${{ order.original_amount }}</td>
+                        </tr>
+                        {% if order.discount_amount > 0 %}
+                            <tr>
+                                <td colspan="3" class="text-end text-muted">Coupon Discount ({{ order.coupon.code|default:"PROMO" }}):</td>
+                                <td class="text-end text-success fw-semibold">-${{ order.discount_amount }}</td>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <td colspan="3" class="text-end text-muted">Taxes &amp; Processing:</td>
+                            <td class="text-end text-dark">$0.00</td>
+                        </tr>
+                        <tr class="table-light fs-6">
+                            <td colspan="3" class="text-end fw-bold text-dark">Total Paid:</td>
+                            <td class="text-end fw-bold text-dark">${{ order.final_amount }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="border-top pt-3 text-center text-muted small">
+                Thank you for your enrollment. This serves as an official electronic receipt.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Security Console | LMS{% endblock %}
+
+{% block content %}
+<!-- Executive Security Console Banner -->
+<div class="card border-0 shadow-sm rounded-3 p-4 p-md-5 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="badge bg-dark text-white px-3 py-1 mb-2">Executive System Console</span>
+            <h2 class="h3 fw-bold text-dark mb-1">Platform Operations &amp; Device Security Oversight</h2>
+            <p class="text-muted small mb-0">Live audit telemetry, active session enforcement, and institutional reporting.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/admin/" class="btn btn-outline-dark btn-sm" target="_blank">
+                Django Administration &nearr;
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Platform KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Total Platform Users</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ total_users }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Course Enrollments</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ total_enrollments }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Accredited Certificates</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ total_certificates }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Gross Tuition Volume</div>
+            <div class="fs-3 fw-bold text-dark mt-1">${{ total_volume }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Live Security Audit Log Stream -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-danger fs-5">&#9888;&#65039;</span>
+                    <h5 class="fw-bold text-dark mb-0">Live Security Violation Telemetry</h5>
+                </div>
+                <span class="badge bg-light text-secondary border">Real-Time</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light text-uppercase text-secondary" style="font-size: 0.75rem;">
+                        <tr>
+                            <th>Event Type</th>
+                            <th>User</th>
+                            <th>IP Address</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in security_logs %}
+                            <tr>
+                                <td>
+                                    {% if log.event_type == 'CONCURRENT_LOGIN_KICKED' %}
+                                        <span class="badge bg-danger text-white">Login Kicked</span>
+                                    {% elif log.event_type == 'DEVTOOLS_OPENED' %}
+                                        <span class="badge bg-dark text-white">DevTools Detected</span>
+                                    {% elif log.event_type == 'WATERMARK_TAMPER' %}
+                                        <span class="badge bg-danger text-white">Watermark Tamper</span>
+                                    {% elif log.event_type == 'SCREEN_CAPTURE_ATTEMPT' %}
+                                        <span class="badge bg-secondary text-white">Screen Capture</span>
+                                    {% elif log.event_type == 'UNAUTHORIZED_STREAM' %}
+                                        <span class="badge bg-danger text-white">Stream Hijack</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border">{{ log.event_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold text-dark">{{ log.user.username|default:"Anonymous" }}</td>
+                                <td class="font-monospace text-muted">{{ log.ip_address|default:"127.0.0.1" }}</td>
+                                <td class="text-secondary">{{ log.created_at|date:"M d, H:i:s" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No security violations recorded.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active User Sessions Management -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-dark mb-0">Active Single-User Sessions</h5>
+                <span class="badge bg-light text-dark border">{{ active_sessions.count }} Active</span>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                {% for sess in active_sessions %}
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark">{{ sess.user.username }}</span>
+                            <span class="text-muted small" style="font-size: 0.75rem;">{{ sess.updated_at|timesince }} ago</span>
+                        </div>
+                        <div class="text-muted small font-monospace mb-2" style="font-size: 0.75rem;">
+                            IP: {{ sess.ip_address|default:"127.0.0.1" }} &bull; Key: {{ sess.session_key|slice:":12" }}...
+                        </div>
+                        <form method="post" action="{% url 'dashboard:terminate_session' sess.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-1" style="font-size: 0.75rem;">
+                                Force Terminate Session
+                            </button>
+                        </form>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4 text-muted small">No active sessions tracked.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

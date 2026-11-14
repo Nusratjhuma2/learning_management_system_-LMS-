@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Instructor Studio | LMS{% endblock %}
+
+{% block content %}
+<!-- Instructor Studio Banner -->
+<div class="card border-0 shadow-sm rounded-3 p-4 p-md-5 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="badge bg-light text-dark border px-3 py-1 mb-2">Faculty &amp; Instructor Studio</span>
+            <h2 class="h3 fw-bold text-dark mb-1">Academic Management Console</h2>
+            <p class="text-muted small mb-0">Course delivery, grading queue, assessment oversight, and student Q&amp;A.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'courses:course_create' %}" class="btn btn-dark btn-sm px-3">
+                + Create Course
+            </a>
+            <a href="{% url 'assignments:instructor_assignments' %}" class="btn btn-outline-dark btn-sm">
+                Assignment Portal
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Key Performance Indicators -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Published Courses</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ courses.count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Pending Grading</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ pending_submissions.count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Course Inquiries</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ unresolved_questions.count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white text-center">
+            <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Total Revenue</div>
+            <div class="fs-3 fw-bold text-dark mt-1">${{ total_revenue }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Courses & Submissions -->
+    <div class="col-lg-8">
+        <!-- Courses List -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-dark mb-0">Your Courses</h5>
+                <a href="{% url 'courses:course_create' %}" class="btn btn-sm btn-outline-dark">+ New Course</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light text-uppercase text-secondary" style="font-size: 0.75rem;">
+                        <tr>
+                            <th>Course Title</th>
+                            <th>Status</th>
+                            <th>Enrolled</th>
+                            <th>Modules / Lessons</th>
+                            <th class="text-end">Manage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'courses:course_detail' course.slug %}" class="fw-bold text-dark text-decoration-none">
+                                        {{ course.title }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if course.status == 'published' %}
+                                        <span class="badge bg-dark text-white">Published</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border">Draft</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold text-dark">{{ course.student_count }}</td>
+                                <td class="text-muted">{{ course.modules.count }} mod / {{ course.lessons.count }} les</td>
+                                <td class="text-end">
+                                    <a href="{% url 'courses:course_update' course.slug %}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;">
+                                        Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No courses created yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pending Assignment Grading Queue -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">Pending Submissions Queue</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light text-uppercase text-secondary" style="font-size: 0.75rem;">
+                        <tr>
+                            <th>Student</th>
+                            <th>Assignment</th>
+                            <th>Submitted Date</th>
+                            <th class="text-end">Evaluate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in pending_submissions %}
+                            <tr>
+                                <td class="fw-semibold text-dark">{{ sub.student.get_full_name|default:sub.student.username }}</td>
+                                <td>{{ sub.assignment.title }}</td>
+                                <td class="text-muted">{{ sub.submitted_at|date:"M d, H:i" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'assignments:grade_submission' sub.pk %}" class="btn btn-sm btn-dark py-0 px-2" style="font-size: 0.75rem;">
+                                        Grade &rarr;
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3 text-muted">All submissions have been evaluated.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Student Q&A & Quiz Monitoring -->
+    <div class="col-lg-4">
+        <!-- Unresolved Discussion Threads -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <h6 class="fw-bold text-dark mb-3">Unanswered Student Q&amp;A</h6>
+            <div class="d-flex flex-column gap-2">
+                {% for q in unresolved_questions %}
+                    <div class="p-2.5 bg-light rounded-3 border">
+                        <div class="fw-bold text-dark small">
+                            <a href="{% url 'discussions:thread_detail' q.pk %}" class="text-dark text-decoration-none">
+                                {{ q.title|truncatechars:35 }}
+                            </a>
+                        </div>
+                        <div class="text-muted small" style="font-size: 0.75rem;">
+                            {{ q.author.username }} &bull; {{ q.course.title|truncatechars:20 }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-muted small">No pending student inquiries.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Quiz Submissions -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h6 class="fw-bold text-dark mb-3">Recent Assessment Attempts</h6>
+            <div class="d-flex flex-column gap-2">
+                {% for qa in recent_quiz_attempts %}
+                    <div class="p-2 bg-light rounded-3 border d-flex justify-content-between align-items-center small">
+                        <div>
+                            <div class="fw-semibold text-dark">{{ qa.student.username }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{{ qa.quiz.title|truncatechars:25 }}</div>
+                        </div>
+                        <div>
+                            <span class="badge {% if qa.passed %}bg-dark text-white{% else %}bg-secondary text-white{% endif %}">{{ qa.score }}%</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-muted small">No assessment attempts recorded.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard | LMS{% endblock %}
+
+{% block content %}
+<!-- Candidate Welcome Header -->
+<div class="card border-0 shadow-sm rounded-3 p-4 p-md-5 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="badge bg-light text-dark border px-3 py-1 mb-2">Student Academic Portal</span>
+            <h2 class="h3 fw-bold text-dark mb-1">Welcome back, {{ user.get_full_name|default:user.username }}</h2>
+            <p class="text-muted small mb-0">{{ user.email }} &bull; Role: Candidate / Student</p>
+        </div>
+
+        <div class="d-flex gap-3">
+            <div class="p-3 bg-light rounded-3 border text-center" style="min-width: 110px;">
+                <span class="text-muted small text-uppercase" style="font-size: 0.7rem;">Total XP</span>
+                <div class="fs-4 fw-bold text-dark">{{ user.xp_points|default:0 }}</div>
+            </div>
+            <div class="p-3 bg-light rounded-3 border text-center" style="min-width: 110px;">
+                <span class="text-muted small text-uppercase" style="font-size: 0.7rem;">Study Streak</span>
+                <div class="fs-4 fw-bold text-dark">{{ user.streak_days|default:0 }} Days</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Active Courses & Deliverables -->
+    <div class="col-lg-8">
+        <!-- Enrolled Courses -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-dark mb-0">Active Curriculum Progress</h5>
+                <a href="{% url 'enrollments:my_courses' %}" class="btn btn-outline-dark btn-sm">All Enrollments</a>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                {% for enr in enrollments %}
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">
+                                    <a href="{% url 'courses:course_detail' enr.course.slug %}" class="text-dark text-decoration-none">
+                                        {{ enr.course.title }}
+                                    </a>
+                                </h6>
+                                <span class="text-muted small">Instructor: {{ enr.course.instructor.get_full_name|default:enr.course.instructor.username }}</span>
+                            </div>
+                            <span class="badge bg-dark text-white">{{ enr.progress_percent }}%</span>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="progress my-2" style="height: 6px;">
+                            <div class="progress-bar bg-dark" role="progressbar" style="width: {{ enr.progress_percent }}%;"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2 mt-2 border-top small">
+                            <span class="text-muted">{{ enr.course.lessons.count }} Lessons Total</span>
+                            <a href="{% url 'courses:course_detail' enr.course.slug %}" class="btn btn-sm btn-dark">
+                                Resume Learning &rarr;
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4 text-muted small">
+                        You have not enrolled in any courses yet.
+                        <div class="mt-2"><a href="{% url 'courses:course_list' %}" class="btn btn-dark btn-sm">Browse Catalog</a></div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Quiz Submissions -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">Recent Assessment Results</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light text-uppercase text-secondary" style="font-size: 0.75rem;">
+                        <tr>
+                            <th>Assessment</th>
+                            <th>Date</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th class="text-end">Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attempt in recent_attempts %}
+                            <tr>
+                                <td class="fw-semibold text-dark">{{ attempt.quiz.title }}</td>
+                                <td class="text-muted">{{ attempt.started_at|date:"M d, H:i" }}</td>
+                                <td class="fw-bold text-dark">{{ attempt.score }}%</td>
+                                <td>
+                                    {% if attempt.is_disqualified %}
+                                        <span class="badge bg-danger text-white">Disqualified</span>
+                                    {% elif attempt.passed %}
+                                        <span class="badge bg-dark text-white">Passed</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'quizzes:quiz_result' attempt.pk %}" class="btn btn-sm btn-outline-dark py-0 px-2" style="font-size: 0.75rem;">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3 text-muted">No assessment attempts recorded.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Credentials & Security Status -->
+    <div class="col-lg-4">
+        <!-- Certificates -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <h6 class="fw-bold text-dark mb-3">Earned Certifications ({{ certificates.count }})</h6>
+            {% for cert in certificates %}
+                <div class="p-3 bg-light rounded-3 border mb-2">
+                    <div class="fw-bold text-dark small">{{ cert.enrollment.course.title }}</div>
+                    <div class="text-muted small font-monospace" style="font-size: 0.7rem;">UID: {{ cert.certificate_id }}</div>
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="{% url 'enrollments:verify_certificate' cert.certificate_uid %}" class="btn btn-sm btn-outline-dark py-0 px-2" style="font-size: 0.75rem;">Verify</a>
+                        <a href="{% url 'enrollments:download_certificate' cert.certificate_uid %}" class="btn btn-sm btn-dark py-0 px-2" style="font-size: 0.75rem;">PDF &darr;</a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-muted small">Complete 100% of a course curriculum to earn verified credentials.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Badges Card -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <h6 class="fw-bold text-dark mb-3">Unlocked Badges ({{ badges.count }})</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% for sb in badges %}
+                    <span class="badge bg-light text-dark border p-2" title="{{ sb.badge.description }}">
+                        {{ sb.badge.icon }} {{ sb.badge.name }}
+                    </span>
+                {% empty %}
+                    <span class="text-muted small">No badges unlocked yet.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Device & Session Security Card -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="text-dark fs-5">&#128274;</span>
+                <h6 class="fw-bold text-dark mb-0">Active Device Security</h6>
+            </div>
+            <p class="text-muted small mb-3">Protected by single-session enforcement</p>
+
+            {% if active_session %}
+                <div class="p-3 bg-light rounded-3 border small">
+                    <div class="text-muted">Active IP Address:</div>
+                    <div class="fw-bold text-dark font-monospace">{{ active_session.ip_address|default:"127.0.0.1" }}</div>
+                    <div class="text-muted mt-2">Last Heartbeat:</div>
+                    <div class="fw-semibold text-dark">{{ active_session.updated_at|timesince }} ago</div>
+                </div>
+            {% endif %}
+
+            <div class="text-muted small mt-3" style="font-size: 0.75rem;">
+                Max Allowed Devices: <strong>{{ user.max_devices|default:2 }}</strong>. Concurrent logins on other devices will securely terminate previous sessions.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

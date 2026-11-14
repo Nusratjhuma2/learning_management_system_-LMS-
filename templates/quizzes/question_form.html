@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Question | {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3 p-4 p-md-5">
+            <h4 class="fw-bold text-dark mb-1">Add Question</h4>
+            <p class="text-muted small mb-4">Quiz: {{ quiz.title }}</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Question Type</label>
+                    <select name="question_type" id="id_question_type" class="form-select" onchange="toggleQuestionFields(this.value)">
+                        <option value="single_choice" selected>Single Choice (Radio)</option>
+                        <option value="multiple_choice">Multiple Choice (Checkboxes)</option>
+                        <option value="true_false">True / False</option>
+                        <option value="short_answer">Short Answer (Exact / Case-Insensitive)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Question Statement</label>
+                    <textarea name="text" class="form-control" rows="3" required placeholder="Enter the question text..."></textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Points Awarded</label>
+                        <input type="number" name="points" value="1" min="1" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Order Index</label>
+                        <input type="number" name="order" value="{{ next_order }}" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Multiple & Single Choice Section -->
+                <div id="choices-container" class="mb-3 p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold text-dark mb-2">Answer Choices</h6>
+                    <p class="small text-muted mb-3">Check the box next to correct choice(s):</p>
+                    <div class="row g-2">
+                        <div class="col-10">
+                            <input type="text" name="choice_1" class="form-control" placeholder="Choice 1">
+                        </div>
+                        <div class="col-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="correct_1" id="corr_1">
+                                <label class="form-check-label small" for="corr_1">Correct</label>
+                            </div>
+                        </div>
+
+                        <div class="col-10">
+                            <input type="text" name="choice_2" class="form-control" placeholder="Choice 2">
+                        </div>
+                        <div class="col-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="correct_2" id="corr_2">
+                                <label class="form-check-label small" for="corr_2">Correct</label>
+                            </div>
+                        </div>
+
+                        <div class="col-10">
+                            <input type="text" name="choice_3" class="form-control" placeholder="Choice 3 (optional)">
+                        </div>
+                        <div class="col-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="correct_3" id="corr_3">
+                                <label class="form-check-label small" for="corr_3">Correct</label>
+                            </div>
+                        </div>
+
+                        <div class="col-10">
+                            <input type="text" name="choice_4" class="form-control" placeholder="Choice 4 (optional)">
+                        </div>
+                        <div class="col-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="correct_4" id="corr_4">
+                                <label class="form-check-label small" for="corr_4">Correct</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- True/False Section -->
+                <div id="tf-container" class="mb-3 p-3 bg-light rounded-3 border d-none">
+                    <h6 class="fw-bold text-dark mb-2">Select True/False Correct Answer</h6>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tf_answer" id="tf_true" value="True" checked>
+                            <label class="form-check-label" for="tf_true">True is Correct</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tf_answer" id="tf_false" value="False">
+                            <label class="form-check-label" for="tf_false">False is Correct</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Short Answer Section -->
+                <div id="short-answer-container" class="mb-3 p-3 bg-light rounded-3 border d-none">
+                    <h6 class="fw-bold text-dark mb-2">Short Answer Solution</h6>
+                    <label class="form-label small text-muted">Expected text (evaluated case-insensitively):</label>
+                    <input type="text" name="short_answer_solution" class="form-control" placeholder="e.g. Hypertext Transfer Protocol">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Explanation (Revealed after submission)</label>
+                    <textarea name="explanation" class="form-control" rows="2" placeholder="Educational reasoning for the correct response..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-4">
+                    <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-dark px-4">
+                        Save Question
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleQuestionFields(type) {
+    const choices = document.getElementById('choices-container');
+    const tf = document.getElementById('tf-container');
+    const sa = document.getElementById('short-answer-container');
+
+    choices.classList.add('d-none');
+    tf.classList.add('d-none');
+    sa.classList.add('d-none');
+
+    if (type === 'single_choice' || type === 'multiple_choice') {
+        choices.classList.remove('d-none');
+    } else if (type === 'true_false') {
+        tf.classList.remove('d-none');
+    } else if (type === 'short_answer') {
+        sa.classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}
+

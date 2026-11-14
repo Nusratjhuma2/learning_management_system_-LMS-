@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ assignment.title }} | Assignments{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course.slug %}" class="text-secondary text-decoration-none">{{ course.title }}</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ assignment.title }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-8">
+        <!-- Assignment Overview Card -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 p-md-5 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <span class="badge bg-light text-dark border px-3 py-1">Practical Assignment</span>
+                <span class="text-muted small">Max Score: <strong class="text-dark">{{ assignment.max_score }} Points</strong></span>
+            </div>
+
+            <h1 class="h3 fw-bold text-dark mb-2">{{ assignment.title }}</h1>
+            <p class="text-muted small mb-4">Course: {{ course.title }}</p>
+
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <div class="row g-2 small">
+                    <div class="col-sm-6">
+                        <span class="text-muted">Due Date:</span>
+                        <span class="fw-semibold text-dark">
+                            {% if assignment.due_date %}{{ assignment.due_date|date:"F d, Y - H:i" }}{% else %}No deadline set{% endif %}
+                        </span>
+                        {% if assignment.is_past_due %}
+                            <span class="badge bg-danger text-white ms-1">Past Due</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted">Repository URL:</span>
+                        <span class="fw-semibold text-dark">
+                            {% if assignment.repo_url_required %}Mandatory{% else %}Optional{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-dark mb-2">Assignment Brief</h6>
+            <div class="text-secondary mb-4" style="line-height: 1.7;">
+                {{ assignment.description|linebreaks }}
+            </div>
+
+            {% if assignment.attachment %}
+                <div class="p-3 bg-white rounded-3 border d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fs-4">&#128206;</span>
+                        <div>
+                            <div class="fw-semibold text-dark small">Specification Attachment</div>
+                            <div class="text-muted small">Download reference guidelines</div>
+                        </div>
+                    </div>
+                    <a href="{{ assignment.attachment.url }}" download class="btn btn-sm btn-outline-dark">
+                        Download File
+                    </a>
+                </div>
+            {% endif %}
+
+            {% if is_instructor %}
+                <div class="d-flex gap-2 pt-3 border-top">
+                    <a href="{% url 'assignments:submissions_list' assignment.pk %}" class="btn btn-dark">
+                        View Submissions ({{ assignment.total_submissions }})
+                    </a>
+                    <a href="{% url 'assignments:assignment_update' assignment.pk %}" class="btn btn-outline-secondary">
+                        Edit Assignment
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Student Submission Section -->
+        {% if not is_instructor and is_enrolled %}
+            <div class="card border-0 shadow-sm rounded-3 p-4 p-md-5">
+                <h5 class="fw-bold text-dark mb-1">Your Submission</h5>
+                <p class="text-muted small mb-4">Upload your practical solution files or repository link for grading.</p>
+
+                {% if submission %}
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-dark small">Status:</span>
+                            {% if submission.status == 'graded' %}
+                                <span class="badge bg-dark text-white px-3 py-1">Graded ({{ submission.score }}/{{ assignment.max_score }})</span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border px-3 py-1">Submitted &bull; Pending Review</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="small text-secondary">
+                            <div>Submitted At: <strong class="text-dark">{{ submission.submitted_at|date:"M d, Y - H:i" }}</strong></div>
+                            {% if submission.submitted_file %}
+                                <div>Attached File: <a href="{{ submission.submitted_file.url }}" class="text-dark fw-semibold text-decoration-none" download>{{ submission.submitted_file.name }}</a></div>
+                            {% endif %}
+                            {% if submission.repo_url %}
+                                <div>Repository: <a href="{{ submission.repo_url }}" target="_blank" class="text-dark fw-semibold text-decoration-none">{{ submission.repo_url }}</a></div>
+                            {% endif %}
+                        </div>
+
+                        {% if submission.feedback %}
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="fw-bold text-dark small mb-1">Instructor Feedback</h6>
+                                <p class="text-dark small mb-0">{{ submission.feedback }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Submission Form -->
+                {% if not submission or submission.status != 'graded' %}
+                    <form method="post" action="{% url 'assignments:submit_assignment' assignment.pk %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% for field in submission_form %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-dark">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text small text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-dark px-4 py-2 mt-2">
+                            {% if submission %}Update Solution Submission{% else %}Submit Solution{% endif %}
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Announcement: {{ course.title }} | LMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3 p-4 p-md-5">
+            <h4 class="fw-bold text-dark mb-1">Broadcast Course Announcement</h4>
+            <p class="text-muted small mb-4">Course: {{ course.title }}</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Announcement Title</label>
+                    <input type="text" name="title" class="form-control" required placeholder="e.g. Schedule Change for Upcoming Live Review Session">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Announcement Content</label>
+                    <textarea name="content" class="form-control" rows="5" required placeholder="Detailed message broadcasted to all enrolled students..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-4">
+                    <a href="{% url 'discussions:course_discussions' course.slug %}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-dark px-4">
+                        Broadcast to Students
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

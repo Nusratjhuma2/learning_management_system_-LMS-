@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} | Assessment Portal{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' quiz.course.slug %}" class="text-secondary text-decoration-none">{{ quiz.course.title }}</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ quiz.title }}</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <!-- Assessment Overview Card -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                    <div>
+                        <span class="badge bg-light text-dark border px-3 py-1">Examination Assessment</span>
+                        {% if quiz.enforce_anticheat %}
+                            <span class="badge bg-dark text-white px-3 py-1 ms-1">Proctored & Monitored</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small">
+                        Course: <span class="text-dark fw-semibold">{{ quiz.course.title }}</span>
+                    </div>
+                </div>
+
+                <h1 class="h3 fw-bold text-dark mb-2">{{ quiz.title }}</h1>
+                {% if quiz.description %}
+                    <p class="text-secondary mb-4">{{ quiz.description }}</p>
+                {% endif %}
+
+                <!-- Exam Specs Matrix -->
+                <div class="row g-3 my-3">
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Time Limit</div>
+                            <div class="fs-5 fw-bold text-dark mt-1">
+                                {% if quiz.time_limit_minutes > 0 %}{{ quiz.time_limit_minutes }} Mins{% else %}Unlimited{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Passing Score</div>
+                            <div class="fs-5 fw-bold text-dark mt-1">{{ quiz.pass_mark_percent }}%</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Total Questions</div>
+                            <div class="fs-5 fw-bold text-dark mt-1">{{ quiz.total_questions }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 border text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Attempts Remaining</div>
+                            <div class="fs-5 fw-bold text-dark mt-1">
+                                {% if quiz.max_attempts > 0 %}
+                                    {{ quiz.max_attempts|add:"-"|add:attempt_count }} of {{ quiz.max_attempts }}
+                                {% else %}
+                                    Unlimited
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proctoring Instructions Alert -->
+                {% if quiz.enforce_anticheat %}
+                    <div class="alert alert-secondary bg-white border border-secondary border-opacity-25 rounded-3 p-3 mt-4 mb-4">
+                        <div class="d-flex gap-3">
+                            <div class="text-dark fs-4"><i class="bi bi-shield-lock"></i>&#128274;</div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Academic Integrity & Proctoring Rules</h6>
+                                <ul class="small text-secondary mb-0 ps-3">
+                                    <li>Fullscreen mode is required for the entire duration of the assessment.</li>
+                                    <li>Tab switching, window minimization, and blurring are logged. Exceeding 2 warnings results in immediate disqualification (score: 0%).</li>
+                                    <li>Copy, cut, paste, and inspect element shortcuts are strictly disabled.</li>
+                                    <li>Your answers will auto-submit when the countdown timer hits 00:00.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Call to Action -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top">
+                    <a href="{% url 'courses:course_detail' quiz.course.slug %}" class="btn btn-outline-secondary px-4">
+                        &larr; Return to Curriculum
+                    </a>
+
+                    <div>
+                        {% if is_instructor %}
+                            <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn btn-outline-dark me-2">
+                                Manage Assessment
+                            </a>
+                        {% endif %}
+
+                        {% if attempts_exhausted %}
+                            <button class="btn btn-secondary px-4 py-2" disabled>
+                                Attempts Limit Reached
+                            </button>
+                        {% else %}
+                            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}?action=start" class="btn btn-dark px-4 py-2 fw-semibold">
+                                {% if past_attempts.exists %}Retake Assessment{% else %}Start Assessment{% endif %} &rarr;
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Past Attempts History Table -->
+        {% if past_attempts.exists %}
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white border-bottom p-3">
+                    <h6 class="fw-bold text-dark mb-0">Previous Attempt History</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase text-secondary">
+                            <tr>
+                                <th class="ps-4">Attempt Date</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Violations</th>
+                                <th class="text-end pe-4">Review</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for attempt in past_attempts %}
+                                <tr>
+                                    <td class="ps-4 text-dark">{{ attempt.started_at|date:"M d, Y - H:i" }}</td>
+                                    <td>
+                                        <span class="fw-bold text-dark">{{ attempt.score }}%</span>
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_disqualified %}
+                                            <span class="badge bg-danger text-white">Disqualified</span>
+                                        {% elif attempt.passed %}
+                                            <span class="badge bg-dark text-white">Passed</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-secondary border">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.tab_switch_count > 0 %}
+                                            <span class="text-danger fw-semibold">{{ attempt.tab_switch_count }} Tab Switch{{ attempt.tab_switch_count|pluralize:"es" }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Clean (0)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="{% url 'quizzes:quiz_result' attempt.pk %}" class="btn btn-sm btn-outline-dark">
+                                            View Report
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

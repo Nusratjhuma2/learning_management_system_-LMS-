@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Order History | LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <h2 class="h3 mb-1 text-dark fw-bold">Purchase &amp; Order History</h2>
+        <p class="text-muted small mb-0">Review all your course enrollment transactions and download receipts.</p>
+    </div>
+    <a href="{% url 'courses:course_list' %}" class="btn btn-outline-dark btn-sm">
+        Explore Courses &rarr;
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-secondary">
+                <tr>
+                    <th class="ps-4">Order ID</th>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Invoice</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for order in orders %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="font-monospace fw-bold text-dark">{{ order.order_id }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'courses:course_detail' order.course.slug %}" class="fw-semibold text-dark text-decoration-none">
+                                {{ order.course.title }}
+                            </a>
+                        </td>
+                        <td class="text-secondary">{{ order.created_at|date:"M d, Y - H:i" }}</td>
+                        <td>
+                            <span class="fw-bold text-dark">${{ order.final_amount }}</span>
+                            {% if order.discount_amount > 0 %}
+                                <span class="badge bg-light text-success border ms-1">Saved ${{ order.discount_amount }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.status == 'completed' %}
+                                <span class="badge bg-dark text-white">Completed</span>
+                            {% elif order.status == 'pending' %}
+                                <span class="badge bg-light text-secondary border">Pending</span>
+                            {% else %}
+                                <span class="badge bg-danger text-white">{{ order.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'payments:order_invoice' order.order_id %}" class="btn btn-sm btn-outline-dark">
+                                View Invoice
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            You have not placed any orders yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

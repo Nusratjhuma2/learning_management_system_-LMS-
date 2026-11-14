@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}My Achievements &amp; Certificates | LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <h2 class="h3 mb-1 text-dark fw-bold">Achievements &amp; Certifications</h2>
+        <p class="text-muted small mb-0">Your earned credentials, verified certificates, and academic badges.</p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-light px-3 py-2 rounded-3 border text-center">
+            <span class="text-muted small text-uppercase">Total XP</span>
+            <div class="fw-bold text-dark fs-5">{{ xp_points }} XP</div>
+        </div>
+        <div class="bg-light px-3 py-2 rounded-3 border text-center">
+            <span class="text-muted small text-uppercase">Study Streak</span>
+            <div class="fw-bold text-dark fs-5">{{ streak_days }} Day{{ streak_days|pluralize }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Earned Badges Section -->
+<div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+    <h5 class="fw-bold text-dark mb-3">Earned Badges</h5>
+    <div class="row g-3">
+        {% for sb in earned_badges %}
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3 border text-center h-100">
+                    <div class="fs-1 mb-2">{{ sb.badge.icon }}</div>
+                    <h6 class="fw-bold text-dark mb-1 small">{{ sb.badge.name }}</h6>
+                    <p class="text-muted small mb-2" style="font-size: 0.75rem;">{{ sb.badge.description }}</p>
+                    <span class="badge bg-white text-dark border" style="font-size: 0.7rem;">Unlocked: {{ sb.awarded_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-muted small mb-0">No badges earned yet. Complete courses and assessments to earn XP!</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Verifiable Certificates Section -->
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-bottom p-4">
+        <h5 class="fw-bold text-dark mb-0">Verified Certificates ({{ certificates.count }})</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-secondary">
+                <tr>
+                    <th class="ps-4">Certificate ID</th>
+                    <th>Course</th>
+                    <th>Issued Date</th>
+                    <th>Instructor</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for cert in certificates %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold text-dark font-monospace">{{ cert.certificate_id }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'courses:course_detail' cert.enrollment.course.slug %}" class="fw-semibold text-dark text-decoration-none">
+                                {{ cert.enrollment.course.title }}
+                            </a>
+                        </td>
+                        <td class="text-dark">{{ cert.issued_at|date:"M d, Y" }}</td>
+                        <td>{{ cert.enrollment.course.instructor.get_full_name|default:cert.enrollment.course.instructor.username }}</td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'enrollments:verify_certificate' cert.certificate_uid %}" class="btn btn-sm btn-outline-dark me-1">
+                                View Online
+                            </a>
+                            <a href="{% url 'enrollments:download_certificate' cert.certificate_uid %}" class="btn btn-sm btn-dark">
+                                Download PDF
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            You have not completed any courses yet. Once you complete 100% of a course, your official certificate will appear here.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ thread.title }} | Discussions{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-secondary text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course.slug %}" class="text-secondary text-decoration-none">{{ course.title }}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'discussions:course_discussions' course.slug %}" class="text-secondary text-decoration-none">Q&amp;A Forum</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ thread.title|truncatechars:35 }}</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <!-- Main Thread Statement -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 p-md-5 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    {% if thread.is_resolved %}
+                        <span class="badge bg-dark text-white">&check; Resolved</span>
+                    {% else %}
+                        <span class="badge bg-light text-secondary border">Open</span>
+                    {% endif %}
+                    {% if thread.lesson %}
+                        <span class="badge bg-light text-dark border">Lecture {{ thread.lesson.order }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if request.user == thread.author or is_instructor %}
+                        <a href="{% url 'discussions:toggle_resolve' thread.pk %}" class="btn btn-sm btn-outline-dark">
+                            {% if thread.is_resolved %}Reopen Question{% else %}Mark as Resolved{% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h2 class="h4 fw-bold text-dark mb-2">{{ thread.title }}</h2>
+            <div class="text-muted small mb-4">
+                Posted by <strong class="text-dark">{{ thread.author.get_full_name|default:thread.author.username }}</strong> &bull; {{ thread.created_at|date:"F d, Y - H:i" }}
+            </div>
+
+            <div class="text-secondary mb-4" style="line-height: 1.8;">
+                {{ thread.content|linebreaks }}
+            </div>
+        </div>
+
+        <!-- Answers Section -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 p-md-5 mb-4">
+            <h5 class="fw-bold text-dark mb-4">Replies &amp; Peer Solutions ({{ replies.count }})</h5>
+
+            <div class="d-flex flex-column gap-3 mb-4">
+                {% for reply in replies %}
+                    <div class="p-4 bg-light rounded-3 border {% if reply.is_instructor_solution %}border-2 border-dark bg-white{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold text-dark small">{{ reply.author.get_full_name|default:reply.author.username }}</span>
+                                {% if reply.is_instructor_reply %}
+                                    <span class="badge bg-dark text-white" style="font-size: 0.65rem;">Instructor</span>
+                                {% endif %}
+                                {% if reply.is_instructor_solution %}
+                                    <span class="badge bg-light text-success border border-success" style="font-size: 0.65rem;">&check; Accepted Solution</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-muted small">{{ reply.created_at|date:"M d, Y - H:i" }}</span>
+                        </div>
+
+                        <div class="text-secondary small" style="line-height: 1.7;">
+                            {{ reply.content|linebreaks }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4 text-muted small">
+                        No replies yet. Contribute a solution below!
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Reply Form -->
+            <h6 class="fw-bold text-dark mb-2">Leave a Reply</h6>
+            <form method="post" action="{% url 'discussions:reply_create' thread.pk %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ reply_form.content }}
+                </div>
+                <button type="submit" class="btn btn-dark px-4">
+                    Submit Response
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
