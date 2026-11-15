@@ -782,4 +782,24 @@ input:focus, select:focus, textarea:focus {
     color: var(--color-text-muted);
 }
 
+/* ==========================================================================
+   GLOBAL CONTENT SECURITY & ANTI-SCREEN-CAPTURE SHIELD
+   ========================================================================== */
+@media print {
+    html, body {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
+
+.lms-protected-content {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+}
+
+
 

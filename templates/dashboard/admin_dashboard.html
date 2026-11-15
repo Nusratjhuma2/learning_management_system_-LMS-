@@ -3,6 +3,8 @@
 
 {% block title %}Admin Dashboard | LMS Management{% endblock %}
 
+{% block main_class %}container-fluid px-lg-4 px-xl-5 my-4{% endblock %}
+
 {% block content %}
 <!-- Dedicated Gray & White Theme Stylesheet (Guaranteed Rendering) -->
 <style>
@@ -280,9 +282,18 @@
     }
 </style>
 
-<!-- =========================================================================
-     EXECUTIVE HEADER BANNER (CRISP GRAY & WHITE PALETTE)
-     ========================================================================= -->
+<!-- Dashboard Layout Grid with Left Navigation Sidebar -->
+<div class="row g-4">
+    <!-- Left-Side Navigation Bar with Categories -->
+    <div class="col-lg-3 col-xl-3">
+        {% include 'dashboard/_sidebar.html' with active_page='admin_dashboard' %}
+    </div>
+
+    <!-- Main Admin Dashboard Workspace -->
+    <div class="col-lg-9 col-xl-9">
+        <!-- =========================================================================
+             EXECUTIVE HEADER BANNER (CRISP GRAY & WHITE PALETTE)
+             ========================================================================= -->
 <div class="gw-banner mb-4">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
         <div>
@@ -874,6 +885,8 @@
         </div>
     </div>
 </div>
+    </div> <!-- /Main Admin Dashboard Workspace (col-lg-9) -->
+</div> <!-- /Dashboard Layout Grid (row) -->
 
 <!-- Feedback Toast Notification -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">

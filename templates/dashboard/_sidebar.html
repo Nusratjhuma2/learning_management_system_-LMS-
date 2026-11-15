@@ -1,0 +1,291 @@
+{% load static %}
+<!-- Reusable Left Navigation Sidebar (Gray & White Palette) -->
+<div class="gw-sidebar card border-0 shadow-sm p-3 mb-4 bg-white" style="border: 1px solid #e2e8f0 !important; border-radius: 12px;">
+    <!-- User Profile & Role Identity -->
+    <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
+        <div class="gw-avatar-box">
+            {{ request.user.username|slice:":1"|upper }}
+        </div>
+        <div class="overflow-hidden">
+            <div class="fw-bold text-dark text-truncate small" title="{{ request.user.username }}">
+                {{ request.user.get_full_name|default:request.user.username }}
+            </div>
+            <div class="mt-1">
+                {% if request.user.is_superuser or request.user.role == 'admin' %}
+                    <span class="badge bg-dark text-white" style="font-size: 0.65rem;">ADMINISTRATOR</span>
+                {% elif request.user.role == 'instructor' %}
+                    <span class="badge bg-secondary text-dark border" style="font-size: 0.65rem;">INSTRUCTOR</span>
+                {% else %}
+                    <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">STUDENT</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Role-Based Dashboard Navigation -->
+    <div class="mb-4">
+        <div class="sidebar-section-title">PLATFORM NAVIGATION</div>
+        <ul class="nav flex-column gap-1 sidebar-nav-list">
+            {% if request.user.is_superuser or request.user.role == 'admin' %}
+                <!-- Admin Primary Links -->
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:admin_dashboard' %}" class="sidebar-link {% if active_page == 'admin_dashboard' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128202;</span>
+                        <span>Admin Overview</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:admin_dashboard' %}#section-charts" class="sidebar-link">
+                        <span class="sidebar-icon">&#128200;</span>
+                        <span>Analytics &amp; Trends</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:admin_dashboard' %}#section-courses-orders" class="sidebar-link">
+                        <span class="sidebar-icon">&#128218;</span>
+                        <span>Courses &amp; Orders</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:admin_dashboard' %}#section-security" class="sidebar-link">
+                        <span class="sidebar-icon">&#128274;</span>
+                        <span>Security &amp; Logins</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/accounts/user/" class="sidebar-link" target="_blank" rel="noopener">
+                        <span class="sidebar-icon">&#128101;</span>
+                        <span>Manage Users &nearr;</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/" class="sidebar-link" target="_blank" rel="noopener">
+                        <span class="sidebar-icon">&#9881;</span>
+                        <span>Django Backend &nearr;</span>
+                    </a>
+                </li>
+
+            {% elif request.user.role == 'instructor' %}
+                <!-- Instructor Primary Links -->
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:instructor_dashboard' %}" class="sidebar-link {% if active_page == 'instructor_dashboard' %}active{% endif %}">
+                        <span class="sidebar-icon">&#127891;</span>
+                        <span>Instructor Studio</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'courses:course_create' %}" class="sidebar-link">
+                        <span class="sidebar-icon">&#10133;</span>
+                        <span>Create New Course</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'assignments:instructor_assignments' %}" class="sidebar-link">
+                        <span class="sidebar-icon">&#128221;</span>
+                        <span>Grading Queue</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'discussions:notifications_list' %}" class="sidebar-link">
+                        <span class="sidebar-icon">&#128276;</span>
+                        <span>Student Questions</span>
+                    </a>
+                </li>
+
+            {% else %}
+                <!-- Student Primary Links -->
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:student_dashboard' %}" class="sidebar-link {% if active_page == 'student_dashboard' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128218;</span>
+                        <span>My Learning Portal</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'enrollments:my_courses' %}" class="sidebar-link">
+                        <span class="sidebar-icon">&#128214;</span>
+                        <span>My Enrolled Courses</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'enrollments:my_certificates' %}" class="sidebar-link">
+                        <span class="sidebar-icon">&#127942;</span>
+                        <span>My Certificates</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'discussions:notifications_list' %}" class="sidebar-link">
+                        <span class="sidebar-icon">&#128276;</span>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Universal Course Catalog Link -->
+            <li class="nav-item">
+                <a href="{% url 'courses:course_list' %}" class="sidebar-link {% if active_page == 'course_list' %}active{% endif %}">
+                    <span class="sidebar-icon">&#128065;</span>
+                    <span>Browse All Courses</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Section 2: Course Categories (Requested by user) -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="sidebar-section-title mb-0">COURSE CATEGORIES</span>
+            <a href="{% url 'courses:course_list' %}" class="text-muted small text-decoration-none" style="font-size: 0.7rem;">View All</a>
+        </div>
+        <div class="d-flex flex-column gap-1 sidebar-category-list">
+            {% for cat in sidebar_categories %}
+                <a href="{% url 'courses:course_list' %}?category={{ cat.slug }}" class="sidebar-cat-item d-flex justify-content-between align-items-center" title="{{ cat.name }}">
+                    <span class="d-flex align-items-center gap-2 text-truncate me-1" style="font-size: 0.8rem;">
+                        <span class="text-secondary">&#128193;</span>
+                        <span class="text-truncate">{{ cat.name }}</span>
+                    </span>
+                    <span class="badge bg-light text-dark border px-1.5 py-0.5" style="font-size: 0.65rem;">
+                        {{ cat.courses_count }}
+                    </span>
+                </a>
+            {% empty %}
+                <div class="text-muted small py-2 px-1" style="font-size: 0.75rem;">No categories created.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Section 3: Role Switcher / Platform Perspectives -->
+    {% if request.user.is_superuser or request.user.role == 'admin' %}
+        <div class="mb-3 pt-3 border-top">
+            <div class="sidebar-section-title">VIEWABLE PERSPECTIVES</div>
+            <div class="d-flex flex-column gap-1">
+                <a href="{% url 'dashboard:admin_dashboard' %}" class="sidebar-role-btn {% if active_page == 'admin_dashboard' %}active{% endif %}">
+                    <span>&#128274;</span> Admin View (Current)
+                </a>
+                <a href="{% url 'dashboard:instructor_dashboard' %}" class="sidebar-role-btn {% if active_page == 'instructor_dashboard' %}active{% endif %}">
+                    <span>&#127891;</span> Instructor View
+                </a>
+                <a href="{% url 'dashboard:student_dashboard' %}" class="sidebar-role-btn {% if active_page == 'student_dashboard' %}active{% endif %}">
+                    <span>&#128100;</span> Student View
+                </a>
+            </div>
+        </div>
+    {% elif request.user.role == 'instructor' %}
+        <div class="mb-3 pt-3 border-top">
+            <div class="sidebar-section-title">VIEWABLE PERSPECTIVES</div>
+            <div class="d-flex flex-column gap-1">
+                <a href="{% url 'dashboard:instructor_dashboard' %}" class="sidebar-role-btn active">
+                    <span>&#127891;</span> Instructor Studio
+                </a>
+                <a href="{% url 'dashboard:student_dashboard' %}" class="sidebar-role-btn">
+                    <span>&#128100;</span> Student Portal
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Section 4: System Operational Status Footer -->
+    <div class="pt-3 border-top text-center">
+        <div class="d-inline-flex align-items-center gap-1 bg-light border rounded-pill px-2 py-1 small" style="font-size: 0.7rem; color: #334155;">
+            <span class="gw-pulse-dot" style="width: 6px; height: 6px;"></span>
+            <span>Online &bull; LMS v2.4</span>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded Gray & White Sidebar Styles -->
+<style>
+    .gw-sidebar {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+    }
+    .gw-avatar-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background-color: #0f172a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .sidebar-section-title {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.825rem;
+        font-weight: 600;
+        color: #334155;
+        text-decoration: none;
+        transition: all 0.15s ease-in-out;
+    }
+    .sidebar-link:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        text-decoration: none;
+    }
+    .sidebar-link.active {
+        background-color: #0f172a;
+        color: #ffffff;
+    }
+    .sidebar-link.active .sidebar-icon {
+        color: #ffffff;
+    }
+    .sidebar-icon {
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+    }
+    .sidebar-cat-item {
+        padding: 0.4rem 0.65rem;
+        border-radius: 6px;
+        color: #334155;
+        text-decoration: none;
+        transition: background-color 0.12s ease;
+    }
+    .sidebar-cat-item:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        text-decoration: none;
+    }
+    .sidebar-role-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.775rem;
+        font-weight: 500;
+        color: #475569;
+        text-decoration: none;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.12s ease;
+    }
+    .sidebar-role-btn:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+        text-decoration: none;
+    }
+    .sidebar-role-btn.active {
+        background-color: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+</style>
