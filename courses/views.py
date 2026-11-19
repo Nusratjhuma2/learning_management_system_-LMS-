@@ -10,12 +10,20 @@ from .models import Category, Course, CoursePrerequisite, CourseReview, Module, 
 
 
 def course_list(request):
-    """List all published courses with search, category, level, and price filters."""
-    queryset = (
-        Course.objects.filter(status=Course.Status.PUBLISHED)
-        .select_related('instructor', 'category')
-        .annotate(annotated_rating=Avg('reviews__rating'), reviews_total=Count('reviews'))
-    )
+    """List all published courses with search, category, level, and price filters. Admins can view blocked courses."""
+    is_admin = request.user.is_authenticated and (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin')
+    if is_admin:
+        queryset = (
+            Course.objects.all()
+            .select_related('instructor', 'category')
+            .annotate(annotated_rating=Avg('reviews__rating'), reviews_total=Count('reviews'))
+        )
+    else:
+        queryset = (
+            Course.objects.filter(status=Course.Status.PUBLISHED, is_blocked=False)
+            .select_related('instructor', 'category')
+            .annotate(annotated_rating=Avg('reviews__rating'), reviews_total=Count('reviews'))
+        )
 
     # Search filter
     q = request.GET.get('q', '').strip()
@@ -86,6 +94,10 @@ def course_detail(request, slug):
         Course.objects.select_related('instructor', 'category'),
         slug=slug,
     )
+    is_admin = request.user.is_authenticated and (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin')
+    if course.is_blocked and not is_admin:
+        messages.error(request, "This course has been suspended or blocked by platform administration.")
+        return redirect('courses:course_list')
 
     modules = (
         course.modules.prefetch_related('lessons', 'quizzes')
@@ -207,25 +219,60 @@ def course_create(request):
 
 @login_required
 def course_update(request, slug):
-    """Update an existing course (owner only)."""
-    course = get_object_or_404(Course, slug=slug, instructor=request.user)
+    """Update an existing course (owner or platform administrator)."""
+    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
+    if is_admin:
+        course = get_object_or_404(Course, slug=slug)
+    else:
+        course = get_object_or_404(Course, slug=slug, instructor=request.user)
+
     if request.method == 'POST':
         form = CourseForm(request.POST, request.FILES, instance=course)
         if form.is_valid():
             form.save()
-            messages.success(request, "Course details updated.")
+            messages.success(request, f"Course '{course.title}' details updated.")
             return redirect('courses:course_detail', slug=course.slug)
     else:
         form = CourseForm(instance=course)
-    return render(request, 'courses/course_form.html', {'form': form, 'title': 'Update Course'})
+    return render(request, 'courses/course_form.html', {'form': form, 'title': f'Update Course: {course.title}'})
 
 
 @login_required
 def course_delete(request, slug):
-    """Delete a course (owner only)."""
-    course = get_object_or_404(Course, slug=slug, instructor=request.user)
+    """Delete a course (owner or platform administrator can delete any course)."""
+    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
+    if is_admin:
+        course = get_object_or_404(Course, slug=slug)
+    else:
+        course = get_object_or_404(Course, slug=slug, instructor=request.user)
+
     if request.method == 'POST':
+        title = course.title
         course.delete()
-        messages.info(request, "Course deleted successfully.")
+        messages.info(request, f"Course '{title}' deleted successfully.")
+        next_url = request.POST.get('next')
+        if next_url:
+            return redirect(next_url)
+        if is_admin:
+            return redirect('dashboard:admin_dashboard')
         return redirect('courses:course_list')
-    return render(request, 'courses/course_confirm_delete.html', {'course': course})
+    return render(request, 'courses/course_confirm_delete.html', {'course': course, 'is_admin': is_admin})
+
+
+@login_required
+@require_POST
+def toggle_course_block(request, slug):
+    """Platform administrators can block or unblock any course from any instructor."""
+    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
+        messages.error(request, "Administrative privileges required to block or unblock courses.")
+        return redirect('courses:course_list')
+
+    course = get_object_or_404(Course, slug=slug)
+    course.is_blocked = not course.is_blocked
+    course.save()
+
+    state = "BLOCKED" if course.is_blocked else "UNBLOCKED"
+    messages.success(request, f"Course '{course.title}' has been {state} by administration.")
+
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard:admin_dashboard'
+    return redirect(next_url)

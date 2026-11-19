@@ -18,8 +18,8 @@
             <h5 class="fw-bold text-dark mb-3">Order Summary</h5>
 
             <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-4">
-                {% if course.thumbnail %}
-                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="rounded" style="width: 70px; height: 50px; object-fit: cover;">
+                {% if course.get_thumbnail_url %}
+                    <img src="{{ course.get_thumbnail_url }}" alt="{{ course.title }}" class="rounded" style="width: 70px; height: 50px; object-fit: cover;">
                 {% else %}
                     <div class="bg-white border rounded d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 70px; height: 50px;">
                         LMS

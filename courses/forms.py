@@ -27,6 +27,7 @@ class CourseForm(forms.ModelForm):
             'what_you_will_learn',
             'requirements',
             'thumbnail',
+            'thumbnail_url',
             'status',
         ]
         widgets = {
@@ -83,9 +84,15 @@ class CourseForm(forms.ModelForm):
                 'placeholder': 'Prerequisites and required background knowledge...',
             }),
             'thumbnail': forms.FileInput(attrs={'class': 'form-control'}),
+            'thumbnail_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://example.com/photo.jpg (or paste web photo link)',
+            }),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
+            'thumbnail': 'Upload Photo File',
+            'thumbnail_url': 'Or Photo Link (Web Image URL)',
             'is_free': 'Offer this course for Free',
             'price': 'Standard Tuition Price ($ USD)',
             'discount_price': 'Discounted / Promotional Price ($ USD)',

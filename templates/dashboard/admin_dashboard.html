@@ -768,6 +768,127 @@
             </div>
         </div>
     </div>
+
+    <!-- All Courses Governance & Moderation Table (All Instructors) -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="gw-card">
+                <div class="gw-card-header flex-column flex-md-row gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-0">&#9881; Platform Course Governance &amp; Moderation</h6>
+                        <p class="text-muted small mb-0">Platform administrators can edit, block/unblock, or permanently delete courses from any instructor.</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-dark border">{{ all_courses.count }} Total Course{{ all_courses.count|pluralize }}</span>
+                        <a href="{% url 'courses:course_create' %}" class="btn btn-dark btn-sm">+ Add New Course</a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-gw align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Course Title</th>
+                                <th>Instructor</th>
+                                <th>Category / Level</th>
+                                <th>Price</th>
+                                <th>Students</th>
+                                <th>Status</th>
+                                <th class="text-end">Admin Controls</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in all_courses %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if c.get_thumbnail_url %}
+                                                <img src="{{ c.get_thumbnail_url }}" alt="{{ c.title }}" class="rounded border" style="width: 44px; height: 32px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-light border rounded d-flex align-items-center justify-content-center text-muted small fw-bold" style="width: 44px; height: 32px; font-size: 0.65rem;">
+                                                    LMS
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <a href="{% url 'courses:course_detail' c.slug %}" class="fw-bold text-dark text-decoration-none">
+                                                    {{ c.title }}
+                                                </a>
+                                                <div class="text-muted small">Slug: {{ c.slug }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ c.instructor.get_full_name|default:c.instructor.username }}</div>
+                                        <small class="text-muted">@{{ c.instructor.username }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ c.category.name|default:"General" }}</span>
+                                        <small class="text-muted d-block">{{ c.get_level_display }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ c.formatted_price }}</div>
+                                        {% if c.has_discount %}
+                                            <small class="text-muted text-decoration-line-through">${{ c.price }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">{{ c.enrollment_count|default:0 }}</span>
+                                    </td>
+                                    <td>
+                                        {% if c.is_blocked %}
+                                            <span class="badge bg-danger text-white px-2 py-1">&#128274; BLOCKED</span>
+                                        {% elif c.status == 'published' %}
+                                            <span class="badge bg-success text-white px-2 py-1">&check; Published</span>
+                                        {% elif c.status == 'archived' %}
+                                            <span class="badge bg-secondary text-white px-2 py-1">Archived</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark border px-2 py-1">Draft</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <!-- Block / Unblock Toggle -->
+                                            <form method="post" action="{% url 'courses:toggle_block' c.slug %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{% url 'dashboard:admin_dashboard' %}#section-courses-orders">
+                                                {% if c.is_blocked %}
+                                                    <button type="submit" class="btn btn-outline-success btn-sm py-1 px-2" title="Unblock this course" style="font-size: 0.75rem;">
+                                                        Unblock
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-outline-warning btn-sm py-1 px-2" title="Block / Suspend this course" style="font-size: 0.75rem;">
+                                                        Block
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+
+                                            <!-- Edit Course -->
+                                            <a href="{% url 'courses:course_update' c.slug %}" class="btn btn-outline-secondary btn-sm py-1 px-2" style="font-size: 0.75rem;" title="Edit Course Details">
+                                                Edit
+                                            </a>
+
+                                            <!-- Delete Course -->
+                                            <form method="post" action="{% url 'courses:course_delete' c.slug %}" class="d-inline" onsubmit="return confirm('⚠️ ADMIN ACTION: Are you sure you want to permanently delete course \'{{ c.title }}\' authored by @{{ c.instructor.username }}? This action cannot be undone.');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{% url 'dashboard:admin_dashboard' %}#section-courses-orders">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2" style="font-size: 0.75rem;" title="Delete Course">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted small">No courses found on the platform.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- =========================================================================

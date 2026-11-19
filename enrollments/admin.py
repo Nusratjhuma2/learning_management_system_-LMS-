@@ -19,7 +19,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
     inlines = [CertificateInline]
     actions = ['mark_completed_and_issue_cert', 'reset_student_progress']
 
-    @admin.action(description="Mark 100% completed & auto-issue certificate")
+    @admin.action(description="Mark fully completed & auto-issue certificate")
     def mark_completed_and_issue_cert(self, request, queryset):
         issued = 0
         for enrollment in queryset:
@@ -34,7 +34,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
             issued += 1
         self.message_user(request, f"Marked {issued} enrollment(s) completed and generated academic certificates.")
 
-    @admin.action(description="Reset progress back to 0%")
+    @admin.action(description="Reset progress back to zero")
     def reset_student_progress(self, request, queryset):
         count = queryset.update(
             progress_percent=0.00,

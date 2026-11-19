@@ -348,8 +348,13 @@ def lesson_save_note_api(request, lesson_id):
 
 @login_required
 def lesson_create(request, course_slug):
-    """Add a lesson to a course (course owner only)."""
-    course = get_object_or_404(Course, slug=course_slug, instructor=request.user)
+    """Add a lesson to a course (course author or platform administrator)."""
+    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
+    if is_admin:
+        course = get_object_or_404(Course, slug=course_slug)
+    else:
+        course = get_object_or_404(Course, slug=course_slug, instructor=request.user)
+
     if request.method == 'POST':
         form = LessonForm(request.POST, request.FILES)
         if form.is_valid():
@@ -370,8 +375,13 @@ def lesson_create(request, course_slug):
 
 @login_required
 def lesson_update(request, course_slug, pk):
-    """Edit a lesson (course owner only)."""
-    lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug, course__instructor=request.user)
+    """Edit a lesson (course author or platform administrator)."""
+    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
+    if is_admin:
+        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug)
+    else:
+        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug, course__instructor=request.user)
+
     if request.method == 'POST':
         form = LessonForm(request.POST, request.FILES, instance=lesson)
         if form.is_valid():
@@ -390,8 +400,13 @@ def lesson_update(request, course_slug, pk):
 
 @login_required
 def lesson_delete(request, course_slug, pk):
-    """Delete a lesson (course owner only)."""
-    lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug, course__instructor=request.user)
+    """Delete a lesson (course author or platform administrator)."""
+    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
+    if is_admin:
+        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug)
+    else:
+        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug, course__instructor=request.user)
+
     course = lesson.course
     if request.method == 'POST':
         lesson.delete()

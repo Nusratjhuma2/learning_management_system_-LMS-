@@ -67,11 +67,14 @@ class Course(models.Model):
         help_text='Key learning outcomes (one per line or summary)',
     )
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
+    thumbnail_url = models.URLField(max_length=500, blank=True, default='', help_text='Direct web photo/image link (URL)')
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.DRAFT,
     )
+    is_blocked = models.BooleanField(default=False, help_text="Course blocked or suspended by administration")
+    blocked_reason = models.CharField(max_length=255, blank=True, default='', help_text="Reason for administrative block")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -130,6 +133,18 @@ class Course(models.Model):
         if self.has_discount and self.price and self.discount_price:
             return round(self.price - self.discount_price, 2)
         return Decimal('0.00')
+
+    @property
+    def get_thumbnail_url(self):
+        """Returns uploaded thumbnail file URL if available, otherwise photo link URL."""
+        if self.thumbnail:
+            try:
+                return self.thumbnail.url
+            except Exception:
+                pass
+        if self.thumbnail_url:
+            return self.thumbnail_url
+        return ''
 
     @property
     def formatted_price(self):

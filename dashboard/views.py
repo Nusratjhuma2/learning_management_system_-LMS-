@@ -215,6 +215,11 @@ def admin_dashboard(request):
         role_dict.get('admin', 0)
     ])
 
+    # --- All Courses for Admin Governance & Moderation ---
+    all_courses = Course.objects.annotate(
+        enrollment_count=Count('enrollments')
+    ).select_related('instructor', 'category').order_by('-created_at')
+
     # --- Top 5 Courses by Enrollment ---
     top_courses = Course.objects.annotate(
         enrollment_count=Count('enrollments')
@@ -230,6 +235,7 @@ def admin_dashboard(request):
         'total_volume': total_volume,
         'security_logs': security_logs,
         'active_sessions': active_sessions,
+        'all_courses': all_courses,
         # New KPIs
         'total_courses': total_courses,
         'total_instructors': total_instructors,

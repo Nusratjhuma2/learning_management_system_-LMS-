@@ -23,8 +23,8 @@
         {% for enrollment in enrollments %}
             <div class="col-md-6 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-3 h-100 overflow-hidden d-flex flex-column">
-                    {% if enrollment.course.thumbnail %}
-                        <img src="{{ enrollment.course.thumbnail.url }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ enrollment.course.title }}">
+                    {% if enrollment.course.get_thumbnail_url %}
+                        <img src="{{ enrollment.course.get_thumbnail_url }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ enrollment.course.title }}">
                     {% else %}
                         <div class="bg-light text-center py-5 border-bottom">
                             <span class="text-secondary fw-semibold small text-uppercase">{{ enrollment.course.category.name|default:"ACADEMIC COURSE" }}</span>

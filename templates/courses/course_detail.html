@@ -260,8 +260,8 @@
     <!-- Right Column: Enrollment Card & Pricing -->
     <div class="col-lg-4">
         <div class="card p-4 sticky-top" style="top: 2rem;">
-            {% if course.thumbnail %}
-                <img src="{{ course.thumbnail.url }}" class="img-fluid rounded-3 mb-3 border" alt="{{ course.title }}">
+            {% if course.get_thumbnail_url %}
+                <img src="{{ course.get_thumbnail_url }}" class="img-fluid rounded-3 mb-3 border" alt="{{ course.title }}">
             {% endif %}
 
             <div class="mb-3">
@@ -308,7 +308,44 @@
             </div>
 
             {% if user.is_authenticated %}
-                {% if user == course.instructor %}
+                {% if user.role == 'admin' or user.is_superuser %}
+                    <!-- Platform Administrator Control Panel -->
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-dark text-white">Platform Administrator</span>
+                            {% if course.is_blocked %}
+                                <span class="badge bg-danger text-white">&#128274; BLOCKED</span>
+                            {% else %}
+                                <span class="badge bg-success text-white">&check; Active</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted small mb-0">Instructor: <strong>{{ course.instructor.get_full_name|default:course.instructor.username }}</strong> (@{{ course.instructor.username }})</p>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{% url 'lessons:lesson_create' course.slug %}" class="btn btn-primary btn-sm">
+                            + Add New Lecture
+                        </a>
+                        <a href="{% url 'courses:course_update' course.slug %}" class="btn btn-secondary btn-sm">
+                            Edit Course Details
+                        </a>
+                        <form method="post" action="{% url 'courses:toggle_block' course.slug %}">
+                            {% csrf_token %}
+                            {% if course.is_blocked %}
+                                <button type="submit" class="btn btn-outline-success w-100 btn-sm">
+                                    &check; Unblock Course
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-outline-warning w-100 btn-sm">
+                                    &#128274; Block Course
+                                </button>
+                            {% endif %}
+                        </form>
+                        <a href="{% url 'courses:course_delete' course.slug %}" class="btn btn-outline-danger btn-sm">
+                            Delete Course (Admin)
+                        </a>
+                    </div>
+                {% elif user == course.instructor %}
                     <div class="p-3 bg-light rounded-3 border mb-3">
                         <span class="badge mb-2">Instructor Studio</span>
                         <p class="text-muted small mb-0">You are the author of this course.</p>
