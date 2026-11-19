@@ -6,7 +6,7 @@ from django.db import models
 
 from .models import ActiveUserSession, Administrator, SecurityAuditLog, TrustedDevice, User
 
-admin.site.site_header = "Enterprise LMS Governance Administration"
+admin.site.site_header = "LMS Governance Administration"
 admin.site.site_title = "Enterprise LMS Admin Portal"
 admin.site.index_title = "System Management & Permissions Control Center"
 

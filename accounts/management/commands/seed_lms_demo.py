@@ -119,8 +119,9 @@ class Command(BaseCommand):
                 'instructor': instructor,
                 'description': 'Introductory systems computing and network primitives.',
                 'level': 'beginner',
-                'price': Decimal('0.00'),
-                'is_free': True,
+                'price': Decimal('100.00'),
+                'discount_price': Decimal('50.00'),
+                'is_free': False,
                 'status': Course.Status.PUBLISHED,
             }
         )
