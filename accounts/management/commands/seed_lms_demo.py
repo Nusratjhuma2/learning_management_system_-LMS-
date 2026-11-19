@@ -33,7 +33,7 @@ class Command(BaseCommand):
                 'first_name': 'System',
                 'last_name': 'Administrator',
                 'role': 'admin',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': True,
             }
         )
@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 'last_name': 'Turing',
                 'role': 'instructor',
                 'bio': 'Senior Distributed Systems Architect & Security Researcher.',
-                'is_staff': True,
+                'is_staff': False,
             }
         )
         instructor.set_password('instructor123')

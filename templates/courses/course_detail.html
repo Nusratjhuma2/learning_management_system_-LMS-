@@ -92,69 +92,100 @@
                 <span class="text-muted small">{{ course.lessons.count }} Lecture{{ course.lessons.count|pluralize }}</span>
             </div>
 
-            {% if modules.exists %}
-                <div class="accordion" id="curriculumAccordion">
-                    {% for module in modules %}
-                        <div class="accordion-item border rounded-3 mb-2 overflow-hidden">
-                            <h2 class="accordion-header" id="heading{{ module.id }}">
-                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} bg-light fw-bold text-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ module.id }}">
-                                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                                        <span>Section {{ module.order }}: {{ module.title }}</span>
-                                        <span class="badge bg-white text-dark border">{{ module.lessons.count }} Lecture{{ module.lessons.count|pluralize }}</span>
-                                    </div>
-                                </button>
-                            </h2>
-                            <div id="collapse{{ module.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#curriculumAccordion">
-                                <div class="accordion-body p-0">
-                                    <div class="list-group list-group-flush">
-                                        {% for lesson in module.lessons.all %}
-                                            <a href="{% url 'lessons:lesson_detail' course.slug lesson.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2.5 px-3">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="text-muted small">{{ lesson.order }}.</span>
-                                                    <span class="text-dark small fw-medium">{{ lesson.title }}</span>
-                                                    {% if lesson.is_free_preview %}
-                                                        <span class="badge bg-light text-dark border">Preview</span>
-                                                    {% endif %}
-                                                </div>
-                                                <span class="text-muted small">{{ lesson.get_lesson_type_display|default:lesson.get_content_type_display }}</span>
-                                            </a>
-                                        {% empty %}
-                                            <div class="p-3 text-muted small text-center">No lectures in this module yet.</div>
-                                        {% endfor %}
+            {% if is_enrolled or user == course.instructor or user.is_superuser %}
+                <!-- UNLOCKED: Visible after buying/enrolling or for course author -->
+                {% if modules.exists %}
+                    <div class="accordion" id="curriculumAccordion">
+                        {% for module in modules %}
+                            <div class="accordion-item border rounded-3 mb-2 overflow-hidden">
+                                <h2 class="accordion-header" id="heading{{ module.id }}">
+                                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} bg-light fw-bold text-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ module.id }}">
+                                        <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                            <span>Section {{ module.order }}: {{ module.title }}</span>
+                                            <span class="badge bg-white text-dark border">{{ module.lessons.count }} Lecture{{ module.lessons.count|pluralize }}</span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ module.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#curriculumAccordion">
+                                    <div class="accordion-body p-0">
+                                        <div class="list-group list-group-flush">
+                                            {% for lesson in module.lessons.all %}
+                                                <a href="{% url 'lessons:lesson_detail' course.slug lesson.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2.5 px-3">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="text-muted small">{{ lesson.order }}.</span>
+                                                        <span class="text-dark small fw-medium">{{ lesson.title }}</span>
+                                                    </div>
+                                                    <span class="badge">{{ lesson.get_lesson_type_display|default:lesson.get_content_type_display }}</span>
+                                                </a>
+                                            {% empty %}
+                                                <div class="p-3 text-muted small text-center">No lectures in this module yet.</div>
+                                            {% endfor %}
 
-                                        {% for quiz in module.quizzes.all %}
-                                            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2.5 px-3 bg-light">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="badge bg-dark text-white">Quiz</span>
-                                                    <span class="text-dark small fw-medium">{{ quiz.title }}</span>
-                                                </div>
-                                                <span class="text-muted small">{{ quiz.time_limit_minutes }} mins</span>
-                                            </a>
-                                        {% endfor %}
+                                            {% for quiz in module.quizzes.all %}
+                                                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2.5 px-3 bg-light">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-dark text-white">Quiz</span>
+                                                        <span class="text-dark small fw-medium">{{ quiz.title }}</span>
+                                                    </div>
+                                                    <span class="text-muted small">{{ quiz.time_limit_minutes }} mins</span>
+                                                </a>
+                                            {% endfor %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-            <!-- Standalone Lessons outside modules -->
-            {% if standalone_lessons.exists %}
-                <div class="list-group lesson-list mt-3">
-                    {% for lesson in standalone_lessons %}
-                        <a href="{% url 'lessons:lesson_detail' course.slug lesson.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <span class="fw-semibold text-dark me-2">{{ lesson.order }}.</span>
-                                <span class="text-dark">{{ lesson.title }}</span>
-                                {% if lesson.is_free_preview %}
-                                    <span class="badge bg-light text-dark border ms-2">Free Preview</span>
-                                {% endif %}
-                            </div>
-                            <span class="badge">{{ lesson.get_lesson_type_display|default:lesson.get_content_type_display }}</span>
+                <!-- Standalone Lessons outside modules -->
+                {% if standalone_lessons.exists %}
+                    <div class="list-group lesson-list mt-3">
+                        {% for lesson in standalone_lessons %}
+                            <a href="{% url 'lessons:lesson_detail' course.slug lesson.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <span class="fw-semibold text-dark me-2">{{ lesson.order }}.</span>
+                                    <span class="text-dark">{{ lesson.title }}</span>
+                                </div>
+                                <span class="badge">{{ lesson.get_lesson_type_display|default:lesson.get_content_type_display }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            {% else %}
+                <!-- LOCKED: Shown before purchasing the course -->
+                <div class="p-4 bg-light rounded-3 border text-center mb-4">
+                    <div class="display-6 mb-2">&#128274;</div>
+                    <h5 class="fw-bold text-dark mb-1">Course Modules Locked</h5>
+                    <p class="text-muted small mb-3">
+                        Curriculum content, lecture videos, interactive notes, and assessments are protected. Purchase or enroll in this course to unlock all modules.
+                    </p>
+                    {% if course.is_free %}
+                        <a href="{% url 'enrollments:enroll' course.slug %}" class="btn btn-primary btn-sm px-4 py-2">
+                            Enroll Free to Unlock Content &rarr;
                         </a>
-                    {% endfor %}
+                    {% else %}
+                        <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-primary btn-sm px-4 py-2">
+                            Purchase Course to Unlock &bull; ${{ course.effective_price }} &rarr;
+                        </a>
+                    {% endif %}
                 </div>
+
+                {% if modules.exists %}
+                    <div class="accordion" id="curriculumAccordionLocked">
+                        {% for module in modules %}
+                            <div class="accordion-item border rounded-3 mb-2 overflow-hidden">
+                                <h2 class="accordion-header">
+                                    <div class="bg-light fw-bold text-dark py-3 px-3 d-flex justify-content-between align-items-center">
+                                        <span>Section {{ module.order }}: {{ module.title }}</span>
+                                        <span class="badge bg-white text-dark border">&#128274; Locked ({{ module.lessons.count }} Lecture{{ module.lessons.count|pluralize }})</span>
+                                    </div>
+                                </h2>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
 

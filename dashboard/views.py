@@ -28,7 +28,7 @@ User = get_user_model()
 def dashboard_router(request):
     """Dispatches the user to their designated dashboard view based on account role."""
     role = getattr(request.user, 'role', 'student')
-    if request.user.is_superuser or request.user.is_staff or role == 'admin':
+    if request.user.is_superuser or role == 'admin':
         return redirect('dashboard:admin_dashboard')
     elif role == 'instructor':
         return redirect('dashboard:instructor_dashboard')
@@ -124,9 +124,9 @@ def admin_dashboard(request):
     Executive Security & Platform Operations Console.
     Real-time security audit log stream, active session management, platform metrics.
     """
-    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'role', '') == 'admin'):
+    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
         messages.error(request, "Administrative privileges required.")
-        return redirect('dashboard:student_dashboard')
+        return redirect('dashboard:instructor_dashboard' if getattr(request.user, 'role', '') == 'instructor' else 'dashboard:student_dashboard')
 
     total_users = User.objects.count()
     total_enrollments = Enrollment.objects.count()
@@ -260,7 +260,7 @@ def admin_dashboard(request):
 @require_POST
 def terminate_session(request, session_pk):
     """Terminates an active session from the admin console."""
-    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'role', '') == 'admin'):
+    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
         messages.error(request, "Permission denied.")
         return redirect('dashboard:admin_dashboard')
 
@@ -289,7 +289,7 @@ def terminate_session(request, session_pk):
 @login_required
 def admin_dashboard_api(request):
     """JSON API for admin dashboard real-time data refresh."""
-    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'role', '') == 'admin'):
+    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
         return JsonResponse({'error': 'Forbidden'}, status=403)
 
     total_enrollments = Enrollment.objects.count()

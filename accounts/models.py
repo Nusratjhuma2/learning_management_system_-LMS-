@@ -47,6 +47,8 @@ class User(AbstractUser):
             self.is_staff = True
         elif self.role == self.Role.ADMIN:
             self.is_staff = True
+        else:
+            self.is_staff = False
         super().save(*args, **kwargs)
 
 

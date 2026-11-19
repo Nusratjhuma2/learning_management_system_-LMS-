@@ -33,20 +33,49 @@
                         <a class="nav-link" href="{% url 'courses:course_list' %}">Courses</a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'enrollments:my_courses' %}">My Courses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'enrollments:my_certificates' %}">Certificates</a>
-                        </li>
+                        {% if user.is_instructor %}
+                            <!-- Instructor-Specific Courses Dropdown in Navigation Bar -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" id="instructorCoursesNav" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    My Courses ({{ user.courses_created.count }})
+                                </a>
+                                <ul class="dropdown-menu shadow-sm" aria-labelledby="instructorCoursesNav">
+                                    <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.7rem;">Authored Courses</h6></li>
+                                    {% for my_c in user.courses_created.all %}
+                                        <li>
+                                            <a class="dropdown-item d-flex justify-content-between align-items-center py-2" href="{% url 'courses:course_detail' my_c.slug %}">
+                                                <span class="text-truncate me-2" style="max-width: 220px;">{{ my_c.title }}</span>
+                                                <span class="badge bg-light text-dark border">{{ my_c.status|title }}</span>
+                                            </a>
+                                        </li>
+                                    {% empty %}
+                                        <li><span class="dropdown-item text-muted small">No courses authored yet</span></li>
+                                    {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item small" href="{% url 'dashboard:instructor_dashboard' %}">Instructor Studio &rarr;</a></li>
+                                    <li><a class="dropdown-item small text-primary fw-semibold" href="{% url 'courses:course_create' %}">+ Create New Course</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'enrollments:my_courses' %}">My Courses</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'enrollments:my_certificates' %}">Certificates</a>
+                            </li>
+                        {% endif %}
+
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'dashboard:index' %}">Dashboard</a>
                         </li>
-                        {% if user.is_admin or user.is_staff or user.is_superuser %}
+
+                        <!-- Strictly Admin Only: Instructors Never Have Admin Panel Access -->
+                        {% if user.role == 'admin' or user.is_superuser %}
                             <li class="nav-item">
                                 <a class="nav-link fw-semibold" href="{% url 'dashboard:admin_dashboard' %}">Admin Console</a>
                             </li>
                         {% endif %}
+
                         {% if user.is_instructor %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'courses:course_create' %}">+ New Course</a>

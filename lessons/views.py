@@ -28,12 +28,10 @@ def get_hls_signer():
 
 
 def check_lesson_access(user, lesson):
-    """Verify if a user has permission to access the lesson."""
+    """Verify if a user has permission to access the lesson. Only enrolled students, the instructor, or superuser can access."""
     if not user.is_authenticated:
         return False
-    if lesson.is_free_preview:
-        return True
-    if user == lesson.course.instructor or user.is_staff or getattr(user, 'is_admin', False):
+    if user == lesson.course.instructor or user.is_superuser:
         return True
     return Enrollment.objects.filter(student=user, course=lesson.course).exists()
 
