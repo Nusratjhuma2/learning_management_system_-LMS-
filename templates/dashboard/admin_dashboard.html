@@ -77,7 +77,7 @@
     .gw-stat-card {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         padding: 1.25rem !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
         height: 100% !important;
@@ -88,7 +88,7 @@
     }
     .gw-stat-card:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 12px -2px rgba(15, 23, 42, 0.08) !important;
+        box-shadow: 0 6px 14px -2px rgba(15, 23, 42, 0.08) !important;
         border-color: #cbd5e1 !important;
     }
     .gw-stat-label {
@@ -98,35 +98,43 @@
         letter-spacing: 0.05em !important;
         color: #64748b !important;
         margin-bottom: 0.25rem !important;
+        white-space: nowrap !important;
     }
     .gw-stat-icon-wrap {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 8px !important;
-        background-color: #f1f5f9 !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        flex-shrink: 0 !important;
+        border-radius: 10px !important;
+        background-color: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         font-size: 1.15rem !important;
+        line-height: 1 !important;
         color: #0f172a !important;
     }
     .gw-stat-value {
-        font-size: 1.9rem !important;
+        font-size: 1.85rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         letter-spacing: -0.03em !important;
-        line-height: 1.1 !important;
+        line-height: 1.15 !important;
         margin: 0.4rem 0 !important;
     }
     .gw-stat-subtext {
-        font-size: 0.75rem !important;
+        font-size: 0.73rem !important;
         color: #475569 !important;
         background-color: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 6px !important;
-        padding: 0.25rem 0.5rem !important;
-        display: inline-block !important;
+        border-radius: 20px !important;
+        padding: 0.2rem 0.55rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+        line-height: 1.2 !important;
         margin-top: 0.4rem !important;
     }
 
@@ -136,8 +144,12 @@
         border: 1px solid #e2e8f0 !important;
         border-radius: 12px !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-        padding: 1.5rem !important;
+        padding: 1.35rem 1.5rem !important;
         height: 100% !important;
+        transition: box-shadow 0.15s ease !important;
+    }
+    .gw-card:hover {
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
     }
     .gw-card-header {
         display: flex !important;
@@ -150,7 +162,7 @@
     .gw-card-header h3, .gw-card-header h5, .gw-card-header h6 {
         color: #0f172a !important;
         font-weight: 700 !important;
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
         margin-bottom: 0 !important;
         display: flex !important;
         align-items: center !important;
@@ -188,6 +200,7 @@
         letter-spacing: 0.04em !important;
         border-bottom: 1px solid #cbd5e1 !important;
         padding: 0.65rem 0.85rem !important;
+        white-space: nowrap !important;
     }
     .table-gw tbody td {
         padding: 0.75rem 0.85rem !important;
@@ -203,28 +216,46 @@
     .gw-badge-slate {
         background-color: #0f172a !important;
         color: #ffffff !important;
-        border-radius: 4px !important;
+        border-radius: 20px !important;
         font-weight: 600 !important;
         font-size: 0.725rem !important;
-        padding: 0.3rem 0.55rem !important;
+        padding: 0.28rem 0.65rem !important;
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        line-height: 1.2 !important;
     }
     .gw-badge-gray {
         background-color: #f1f5f9 !important;
         color: #334155 !important;
         border: 1px solid #cbd5e1 !important;
-        border-radius: 4px !important;
+        border-radius: 20px !important;
         font-weight: 600 !important;
         font-size: 0.725rem !important;
-        padding: 0.25rem 0.5rem !important;
+        padding: 0.25rem 0.6rem !important;
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        flex-shrink: 0 !important;
+        line-height: 1.2 !important;
     }
     .gw-badge-success {
-        background-color: #f1f5f9 !important;
-        color: #0f172a !important;
-        border: 1px solid #94a3b8 !important;
-        border-radius: 4px !important;
-        font-weight: 700 !important;
+        background-color: #ecfdf5 !important;
+        color: #065f46 !important;
+        border: 1px solid #a7f3d0 !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
         font-size: 0.725rem !important;
-        padding: 0.25rem 0.5rem !important;
+        padding: 0.25rem 0.65rem !important;
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        line-height: 1.2 !important;
+        flex-shrink: 0 !important;
     }
 
     /* Live Telemetry Pulse Dot */
@@ -232,6 +263,9 @@
         display: inline-block !important;
         width: 8px !important;
         height: 8px !important;
+        min-width: 8px !important;
+        min-height: 8px !important;
+        flex-shrink: 0 !important;
         border-radius: 50% !important;
         background-color: #10b981 !important;
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7) !important;
@@ -245,18 +279,22 @@
 
     /* Course Ranking Circle */
     .gw-rank {
-        width: 26px !important;
-        height: 26px !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        flex-shrink: 0 !important;
         border-radius: 50% !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         font-weight: 700 !important;
-        font-size: 0.75rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1 !important;
     }
     .gw-rank-1 { background-color: #0f172a !important; color: #ffffff !important; }
     .gw-rank-2 { background-color: #334155 !important; color: #ffffff !important; }
-    .gw-rank-3 { background-color: #64748b !important; color: #ffffff !important; }
+    .gw-rank-3 { background-color: #475569 !important; color: #ffffff !important; }
     .gw-rank-other { background-color: #e2e8f0 !important; color: #334155 !important; }
 
     /* Search Box */
@@ -278,19 +316,35 @@
 
     /* Section Smooth Scrolling */
     .section-anchor {
-        scroll-margin-top: 1.5rem;
+        scroll-margin-top: 4.5rem;
+    }
+
+    /* Navigation Pill Bar (Sticky) */
+    .gw-nav-wrap {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 0.65rem 1.25rem !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+        position: sticky !important;
+        top: 60px !important;
+        z-index: 1010 !important;
+    }
+
+    /* Course Rank Item Hover */
+    .course-rank-item {
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .course-rank-item:hover {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     }
 </style>
 
-<!-- Dashboard Layout Grid with Left Navigation Sidebar -->
-<div class="row g-4">
-    <!-- Left-Side Navigation Bar with Categories -->
-    <div class="col-lg-3 col-xl-3">
-        {% include 'dashboard/_sidebar.html' with active_page='admin_dashboard' %}
-    </div>
-
-    <!-- Main Admin Dashboard Workspace -->
-    <div class="col-lg-9 col-xl-9">
+<!-- Main Admin Dashboard Workspace (Full-Width Responsive Grid) -->
+<div class="admin-dashboard-container">
         <!-- =========================================================================
              EXECUTIVE HEADER BANNER (CRISP GRAY & WHITE PALETTE)
              ========================================================================= -->
@@ -688,19 +742,19 @@
 
                 <div class="d-flex flex-column gap-2">
                     {% for course in top_courses %}
-                        <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
-                            <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-between p-2.5 px-3 bg-light rounded-3 border course-rank-item" style="border-color:#e2e8f0!important;">
+                            <div class="d-flex align-items-center gap-3 overflow-hidden me-2" style="min-width:0;">
                                 <span class="gw-rank {% if forloop.counter == 1 %}gw-rank-1{% elif forloop.counter == 2 %}gw-rank-2{% elif forloop.counter == 3 %}gw-rank-3{% else %}gw-rank-other{% endif %}">
                                     {{ forloop.counter }}
                                 </span>
-                                <div>
-                                    <a href="{% url 'courses:course_detail' course.slug %}" class="fw-semibold text-dark text-decoration-none d-block">
-                                        {{ course.title|truncatechars:36 }}
+                                <div class="overflow-hidden" style="min-width:0;">
+                                    <a href="{% url 'courses:course_detail' course.slug %}" class="fw-semibold text-dark text-decoration-none text-truncate d-block" title="{{ course.title }}">
+                                        {{ course.title }}
                                     </a>
-                                    <small class="text-muted">Instructor: <strong>{{ course.instructor.username }}</strong> &bull; {{ course.formatted_price }}</small>
+                                    <small class="text-muted text-truncate d-block" style="font-size:0.75rem;">Instructor: <strong>{{ course.instructor.username }}</strong> &bull; {{ course.formatted_price }}</small>
                                 </div>
                             </div>
-                            <div class="text-end">
+                            <div class="text-end flex-shrink-0 ms-2">
                                 <span class="gw-badge-slate">
                                     {{ course.enrollment_count }} Student{{ course.enrollment_count|pluralize }}
                                 </span>
@@ -731,25 +785,27 @@
                     <table class="table table-gw align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Course</th>
-                                <th>Amount</th>
-                                <th>Status</th>
+                                <th style="width: 25%;">Student</th>
+                                <th style="width: 40%;">Course</th>
+                                <th style="width: 17%;">Amount</th>
+                                <th style="width: 18%;" class="text-end">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for order in recent_orders %}
                                 <tr>
-                                    <td class="fw-semibold text-dark">{{ order.user.username }}</td>
-                                    <td class="text-muted">{{ order.course.title|truncatechars:20 }}</td>
-                                    <td class="fw-bold text-dark">${{ order.final_amount }}</td>
-                                    <td>
+                                    <td class="fw-semibold text-dark text-nowrap">{{ order.user.username }}</td>
+                                    <td class="text-muted">
+                                        <div class="text-truncate" style="max-width: 220px;" title="{{ order.course.title }}">{{ order.course.title }}</div>
+                                    </td>
+                                    <td class="fw-bold text-dark text-nowrap">${{ order.final_amount }}</td>
+                                    <td class="text-end text-nowrap">
                                         {% if order.status == 'completed' %}
                                             <span class="gw-badge-success">&check; Paid</span>
                                         {% elif order.status == 'pending' %}
                                             <span class="gw-badge-gray">&bull; Pending</span>
                                         {% elif order.status == 'failed' %}
-                                            <span class="badge bg-danger text-white">&times; Failed</span>
+                                            <span class="badge bg-danger text-white rounded-pill px-2 py-1">&times; Failed</span>
                                         {% else %}
                                             <span class="gw-badge-gray">{{ order.status|title }}</span>
                                         {% endif %}
@@ -1006,8 +1062,7 @@
         </div>
     </div>
 </div>
-    </div> <!-- /Main Admin Dashboard Workspace (col-lg-9) -->
-</div> <!-- /Dashboard Layout Grid (row) -->
+</div> <!-- /admin-dashboard-container -->
 
 <!-- Feedback Toast Notification -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
