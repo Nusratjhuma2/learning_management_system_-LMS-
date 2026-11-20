@@ -9,6 +9,44 @@ from .forms import CourseForm
 from .models import Category, Course, CoursePrerequisite, CourseReview, Module, Wishlist
 
 
+def course_suggest(request):
+    """Return JSON autocomplete suggestions for course search."""
+    q = request.GET.get('q', '').strip()
+    if len(q) < 1:
+        return JsonResponse({'suggestions': []})
+    matches = (
+        Course.objects.filter(
+            Q(status=Course.Status.PUBLISHED, is_blocked=False) &
+            (
+                Q(title__icontains=q) |
+                Q(description__icontains=q) |
+                Q(what_you_will_learn__icontains=q) |
+                Q(instructor__username__icontains=q) |
+                Q(instructor__first_name__icontains=q) |
+                Q(instructor__last_name__icontains=q) |
+                Q(category__name__icontains=q)
+            )
+        )
+        .select_related('instructor', 'category')
+        .order_by('title')[:8]
+    )
+    suggestions = [
+        {
+            'title': c.title,
+            'slug': c.slug,
+            'category': c.category.name if c.category else '',
+            'level': c.get_level_display(),
+            'instructor': c.instructor.get_full_name() or c.instructor.username,
+            'thumbnail': c.get_thumbnail_url or '',
+            'price': str(c.effective_price),
+            'is_free': c.is_free,
+            'url': f'/courses/{c.slug}/',
+        }
+        for c in matches
+    ]
+    return JsonResponse({'suggestions': suggestions})
+
+
 def course_list(request):
     """List all published courses with search, category, level, and price filters. Admins can view blocked courses."""
     is_admin = request.user.is_authenticated and (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin')
@@ -72,6 +110,19 @@ def course_list(request):
             Wishlist.objects.filter(student=request.user).values_list('course_id', flat=True)
         )
 
+    # Promotional carousel: top courses by rating + enrollment count (up to 6 slides)
+    promo_courses = list(
+        Course.objects.filter(status=Course.Status.PUBLISHED, is_blocked=False)
+        .select_related('instructor', 'category')
+        .annotate(
+            avg_r=Avg('reviews__rating'),
+            rev_count=Count('reviews', distinct=True),
+            enroll_count=Count('enrollments', distinct=True),
+            lesson_count=Count('lessons', distinct=True),
+        )
+        .order_by('-avg_r', '-enroll_count', '-created_at')[:6]
+    )
+
     return render(
         request,
         'courses/course_list.html',
@@ -84,6 +135,7 @@ def course_list(request):
             'current_price': price_filter,
             'current_sort': sort,
             'user_wishlist': user_wishlist,
+            'promo_courses': promo_courses,
         },
     )
 

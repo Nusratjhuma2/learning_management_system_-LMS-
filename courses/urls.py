@@ -6,6 +6,7 @@ app_name = 'courses'
 
 urlpatterns = [
     path('', views.course_list, name='course_list'),
+    path('api/suggest/', views.course_suggest, name='course_suggest'),
     path('create/', views.course_create, name='course_create'),
     path('<slug:slug>/', views.course_detail, name='course_detail'),
     path('<slug:slug>/update/', views.course_update, name='course_update'),
