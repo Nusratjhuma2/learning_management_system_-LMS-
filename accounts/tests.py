@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase
 
 from accounts.admin import AdministratorAdmin, UserAdmin
 from accounts.forms import SignUpForm
@@ -123,3 +123,46 @@ class AdminSegregationAndPermissionsTests(TestCase):
 
         for model in expected_models:
             self.assertIn(model, admin.site._registry, f"{model.__name__} should be registered in admin.site")
+
+    def test_instructor_list_view_accessible(self):
+        """Instructor directory is publicly accessible and lists active instructors."""
+        client = Client()
+        res = client.get('/accounts/instructors/')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'instructor_jane')
+        self.assertNotContains(res, 'student_mark')
+
+    def test_instructor_list_search(self):
+        """Instructor directory can be filtered by name or department."""
+        self.instructor.department = 'Computer Science'
+        self.instructor.save()
+
+        client = Client()
+        res = client.get('/accounts/instructors/?q=jane')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'instructor_jane')
+
+        res_miss = client.get('/accounts/instructors/?q=nonexistent_prof')
+        self.assertEqual(res_miss.status_code, 200)
+        self.assertNotContains(res_miss, 'instructor_jane')
+
+    def test_instructor_detail_view(self):
+        """Instructor public profile page renders correctly with faculty credentials."""
+        self.instructor.institution_name = 'MIT'
+        self.instructor.department = 'Artificial Intelligence'
+        self.instructor.bio = 'Pioneering researcher in AI.'
+        self.instructor.save()
+
+        client = Client()
+        res = client.get(f'/accounts/instructors/{self.instructor.username}/')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'instructor_jane')
+        self.assertContains(res, 'MIT')
+        self.assertContains(res, 'Artificial Intelligence')
+        self.assertContains(res, 'Pioneering researcher in AI.')
+
+    def test_instructor_detail_404_for_non_instructor(self):
+        """Attempting to view a student's profile via instructor detail returns 404."""
+        client = Client()
+        res = client.get(f'/accounts/instructors/{self.student.username}/')
+        self.assertEqual(res.status_code, 404)

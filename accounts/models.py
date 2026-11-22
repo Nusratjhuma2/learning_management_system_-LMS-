@@ -21,10 +21,31 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    phone_number = models.CharField(max_length=20, blank=True)
+    phone_number = models.CharField(max_length=30, blank=True, verbose_name="Phone Number")
+    
+    # Address Information
+    address = models.CharField(max_length=255, blank=True, verbose_name="Street Address")
+    city = models.CharField(max_length=100, blank=True, verbose_name="City")
+    state = models.CharField(max_length=100, blank=True, verbose_name="State / Province")
+    postal_code = models.CharField(max_length=20, blank=True, verbose_name="Postal / ZIP Code")
+    country = models.CharField(max_length=100, blank=True, verbose_name="Country")
+
+    # Academic Information
+    institution_name = models.CharField(max_length=200, blank=True, verbose_name="Institution / University", help_text="Current school, college, or university")
+    student_id = models.CharField(max_length=50, blank=True, verbose_name="Student / Academic ID", help_text="Institutional registration or student ID number")
+    department = models.CharField(max_length=150, blank=True, verbose_name="Department / Faculty", help_text="e.g. Department of Computer Science")
+    degree_program = models.CharField(max_length=150, blank=True, verbose_name="Degree / Major Program", help_text="e.g. B.Sc. in Computer Science & Engineering")
+    academic_year = models.CharField(max_length=50, blank=True, verbose_name="Academic Year / Level", help_text="e.g. 1st Year, Senior, Graduate")
+    gpa = models.CharField(max_length=20, blank=True, verbose_name="GPA / Grade Point Average", help_text="e.g. 3.85 / 4.00")
+
     max_devices = models.PositiveIntegerField(default=2)
     xp_points = models.PositiveIntegerField(default=0)
     streak_days = models.PositiveIntegerField(default=0)
+
+    @property
+    def full_address(self):
+        parts = [p for p in [self.address, self.city, self.state, self.postal_code, self.country] if p]
+        return ", ".join(parts) if parts else ""
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

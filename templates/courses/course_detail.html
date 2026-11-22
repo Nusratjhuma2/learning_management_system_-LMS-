@@ -34,7 +34,7 @@
             </div>
             
             <h2 class="h3 fw-bold text-dark mb-2">{{ course.title }}</h2>
-            <p class="text-muted small mb-3">Taught by Prof. {{ course.instructor.get_full_name|default:course.instructor.username }} • Updated {{ course.updated_at|date:"M Y" }}</p>
+            <p class="text-muted small mb-3">Taught by <a href="{% url 'accounts:instructor_detail' course.instructor.username %}" class="text-dark fw-semibold text-decoration-none border-bottom border-secondary" title="View Instructor Profile">Prof. {{ course.instructor.get_full_name|default:course.instructor.username }}</a> • Updated {{ course.updated_at|date:"M Y" }}</p>
             
             <div class="text-secondary leading-relaxed mb-4">
                 {{ course.description|linebreaks }}
@@ -319,7 +319,7 @@
                                 <span class="badge bg-success text-white">&check; Active</span>
                             {% endif %}
                         </div>
-                        <p class="text-muted small mb-0">Instructor: <strong>{{ course.instructor.get_full_name|default:course.instructor.username }}</strong> (@{{ course.instructor.username }})</p>
+                        <p class="text-muted small mb-0">Instructor: <strong><a href="{% url 'accounts:instructor_detail' course.instructor.username %}" class="text-dark text-decoration-none">{{ course.instructor.get_full_name|default:course.instructor.username }}</a></strong> (@{{ course.instructor.username }})</p>
                     </div>
 
                     <div class="d-grid gap-2 mb-3">

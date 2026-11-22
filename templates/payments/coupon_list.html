@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Promotional Coupons | LMS{% endblock %}
+
+{% block main_class %}container-fluid px-3 px-md-4 px-xl-5 my-4{% endblock %}
+
+{% block content %}
+<div style="max-width: 1140px; margin: 0 auto;">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-decoration-none text-muted">Home</a></li>
+                {% if is_admin %}
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:admin_dashboard' %}" class="text-decoration-none text-muted">Admin Console</a></li>
+                {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:instructor_dashboard' %}" class="text-decoration-none text-muted">Instructor Studio</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Promotional Coupons</li>
+            </ol>
+        </nav>
+        <div class="d-flex gap-2">
+            {% if is_admin %}
+                <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">&larr; Admin Console</a>
+            {% else %}
+                <a href="{% url 'dashboard:instructor_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">&larr; Instructor Studio</a>
+            {% endif %}
+            <a href="{% url 'payments:coupon_create' %}" class="btn btn-dark btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1 shadow-sm">
+                <span>+</span> Create Coupon
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border: 1px solid #e2e8f0 !important; border-left: 5px solid #0f172a !important; border-radius: 12px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-dark text-white px-2 py-1 text-uppercase" style="font-size: 0.68rem;">PROMOTIONS</span>
+                    {% if is_admin %}
+                        <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.68rem;">Site-Wide &amp; Course Coupons</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.68rem;">Course Discount Coupons</span>
+                    {% endif %}
+                </div>
+                <h3 class="fw-bold text-dark mb-1">Promotional Coupon Management</h3>
+                <p class="text-muted small mb-0">
+                    {% if is_admin %}
+                        Create and govern promotional discounts across all platform curricula or targeted courses.
+                    {% else %}
+                        Offer promotional discounts on your authored courses to drive student enrollments.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="text-center px-3 py-2 bg-light rounded-3 border" style="min-width: 100px;">
+                    <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase;">Total</div>
+                    <div class="fw-bold text-dark fs-5">{{ total_coupons }}</div>
+                </div>
+                <div class="text-center px-3 py-2 bg-light rounded-3 border" style="min-width: 100px;">
+                    <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase;">Active</div>
+                    <div class="fw-bold text-success fs-5">{{ active_coupons }}</div>
+                </div>
+                <div class="text-center px-3 py-2 bg-light rounded-3 border" style="min-width: 100px;">
+                    <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase;">Redeemed</div>
+                    <div class="fw-bold text-dark fs-5">{{ total_redemptions }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-white" style="border: 1px solid #e2e8f0 !important; border-radius: 12px;">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-1">
+                <a href="?status=all{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'all' %}btn-dark{% else %}btn-light border{% endif %} rounded-pill px-3" style="font-size:0.75rem;">
+                    All ({{ total_coupons }})
+                </a>
+                <a href="?status=active{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'active' %}btn-dark{% else %}btn-light border{% endif %} rounded-pill px-3" style="font-size:0.75rem;">
+                    Active
+                </a>
+                <a href="?status=inactive{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'inactive' %}btn-dark{% else %}btn-light border{% endif %} rounded-pill px-3" style="font-size:0.75rem;">
+                    Inactive
+                </a>
+                <a href="?status=expired{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'expired' %}btn-dark{% else %}btn-light border{% endif %} rounded-pill px-3" style="font-size:0.75rem;">
+                    Expired
+                </a>
+            </div>
+
+            <form method="get" class="d-flex align-items-center gap-2">
+                {% if status_filter != 'all' %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+                <div class="input-group input-group-sm" style="max-width: 260px;">
+                    <input type="text" name="q" class="form-control" placeholder="Search coupon or course..." value="{{ q }}">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    {% if q %}
+                        <a href="?{% if status_filter != 'all' %}status={{ status_filter }}{% endif %}" class="btn btn-outline-secondary">&times;</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light text-uppercase text-secondary" style="font-size: 0.72rem;">
+                    <tr>
+                        <th class="ps-4">Coupon Code</th>
+                        <th>Discount</th>
+                        <th>Applicable Course / Scope</th>
+                        <th>Redemptions</th>
+                        <th>Valid Until</th>
+                        <th>Status</th>
+                        {% if is_admin %}<th class="text-muted">Creator</th>{% endif %}
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coupon in coupons %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-light text-dark border font-monospace px-2.5 py-1.5" style="font-size: 0.82rem; letter-spacing: 0.05em;">
+                                    🎟️ {{ coupon.code }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark text-white rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+                                    -{{ coupon.discount_percent }}% OFF
+                                </span>
+                            </td>
+                            <td>
+                                {% if coupon.is_site_wide %}
+                                    <span class="badge bg-primary text-white px-2 py-1" style="font-size: 0.72rem;">
+                                        🌐 All Courses (Site-Wide)
+                                    </span>
+                                {% else %}
+                                    <div>
+                                        <a href="{% url 'courses:course_detail' coupon.course.slug %}" class="text-dark fw-semibold text-decoration-none" title="{{ coupon.course.title }}">
+                                            {{ coupon.course.title|truncatechars:40 }}
+                                        </a>
+                                        {% if is_admin and coupon.course.instructor %}
+                                            <div class="text-muted" style="font-size: 0.7rem;">Instructor: {{ coupon.course.instructor.get_full_name|default:coupon.course.instructor.username }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-semibold text-dark">{{ coupon.used_count }}</span>
+                                    <span class="text-muted">/ {{ coupon.max_uses }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if coupon.valid_until %}
+                                    <span class="{% if coupon.is_expired %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+                                        {{ coupon.valid_until|date:"M d, Y H:i" }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">No Expiry</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not coupon.is_active %}
+                                    <span class="badge bg-secondary text-white rounded-pill px-2 py-1">Deactivated</span>
+                                {% elif coupon.is_expired %}
+                                    <span class="badge bg-danger text-white rounded-pill px-2 py-1">Expired</span>
+                                {% elif coupon.used_count >= coupon.max_uses %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1">Limit Reached</span>
+                                {% else %}
+                                    <span class="badge bg-success text-white rounded-pill px-2 py-1">&check; Active</span>
+                                {% endif %}
+                            </td>
+                            {% if is_admin %}
+                                <td>
+                                    <span class="text-muted small">
+                                        {{ coupon.created_by.get_full_name|default:coupon.created_by.username|default:"System" }}
+                                    </span>
+                                </td>
+                            {% endif %}
+                            <td class="text-end pe-4">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <form method="post" action="{% url 'payments:coupon_toggle_status' coupon.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm {% if coupon.is_active %}btn-outline-secondary{% else %}btn-outline-success{% endif %} py-1 px-2" style="font-size: 0.72rem;" title="{% if coupon.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                            {% if coupon.is_active %}Deactivate{% else %}Activate{% endif %}
+                                        </button>
+                                    </form>
+
+                                    <a href="{% url 'payments:coupon_edit' coupon.pk %}" class="btn btn-sm btn-outline-dark py-1 px-2" style="font-size: 0.72rem;">
+                                        Edit
+                                    </a>
+
+                                    <form method="post" action="{% url 'payments:coupon_delete' coupon.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete coupon {{ coupon.code }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" style="font-size: 0.72rem;" title="Delete">
+                                            &times;
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if is_admin %}8{% else %}7{% endif %}" class="text-center py-5 text-muted">
+                                <div class="fs-4 mb-2">🎟️</div>
+                                <div class="fw-semibold">No promotional coupons found.</div>
+                                <p class="small text-muted mb-3">Create your first coupon code to offer special discounts to students.</p>
+                                <a href="{% url 'payments:coupon_create' %}" class="btn btn-dark btn-sm rounded-pill px-3">
+                                    + Create First Coupon
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

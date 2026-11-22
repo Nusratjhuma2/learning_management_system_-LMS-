@@ -14,13 +14,31 @@ class Coupon(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text='Percentage discount (1 - 100)',
     )
+    course = models.ForeignKey(
+        'courses.Course',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='coupons',
+        help_text="Course this coupon applies to. Leave blank for all courses (Admin only).",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='created_coupons',
+    )
     valid_until = models.DateTimeField(null=True, blank=True)
     max_uses = models.PositiveIntegerField(default=100)
     used_count = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def is_valid(self):
+    class Meta:
+        ordering = ['-created_at']
+
+    def is_valid(self, course=None):
         """Validates whether the coupon can be applied."""
         if not self.is_active:
             return False, "This coupon code is deactivated."
@@ -28,10 +46,31 @@ class Coupon(models.Model):
             return False, "This coupon has expired."
         if self.used_count >= self.max_uses:
             return False, "This coupon has reached its maximum redemption limit."
+        if self.course and course and self.course != course:
+            return False, f"This coupon is only valid for '{self.course.title}'."
         return True, "Coupon is valid."
 
+    @property
+    def is_site_wide(self):
+        return self.course is None
+
+    @property
+    def is_expired(self):
+        return bool(self.valid_until and timezone.now() > self.valid_until)
+
+    @property
+    def status_label(self):
+        if not self.is_active:
+            return "Deactivated"
+        if self.is_expired:
+            return "Expired"
+        if self.used_count >= self.max_uses:
+            return "Limit Reached"
+        return "Active"
+
     def __str__(self):
-        return f"{self.code} (-{self.discount_percent}%)"
+        scope = self.course.title if self.course else "All Courses"
+        return f"{self.code} (-{self.discount_percent}% on {scope})"
 
 
 class Order(models.Model):

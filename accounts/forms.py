@@ -43,18 +43,55 @@ class SignUpForm(UserCreationForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
-    """Form for updating user profile."""
+    """Form for updating user profile including personal details, contact, address, and academic information."""
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'bio', 'profile_picture']
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'address',
+            'city',
+            'state',
+            'postal_code',
+            'country',
+            'institution_name',
+            'student_id',
+            'department',
+            'degree_program',
+            'academic_year',
+            'gpa',
+            'bio',
+            'profile_picture',
+        ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Street Address'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
+            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State / Province'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Postal Code'}),
+            'country': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Country'}),
+            'institution_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'University / College'}),
+            'student_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Student ID'}),
+            'department': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Department'}),
+            'degree_program': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Degree / Program'}),
+            'academic_year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Year / Level'}),
+            'gpa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'GPA / CGPA'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief bio...'}),
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            if field_name == 'bio':
-                field.widget.attrs.update({'class': 'form-control', 'rows': 4})
-            elif field_name == 'profile_picture':
-                field.widget.attrs.update({'class': 'form-control'})
-            else:
-                field.widget.attrs.update({'class': 'form-control'})
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip()
+        if email:
+            qs = User.objects.filter(email__iexact=email)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("An account with this email address already exists.")
+        return email

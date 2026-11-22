@@ -358,7 +358,7 @@
                 </span>
             </div>
             <h1 class="h3 mb-1">
-                Welcome back, {{ request.user.first_name|default:request.user.username }}!
+                Welcome back, <a href="{% url 'accounts:profile' %}" class="text-dark text-decoration-none border-bottom border-dark" title="View Personal Profile">{{ request.user.first_name|default:request.user.username }}</a>!
             </h1>
             <p class="mb-0">
                 Institutional learning management, student enrollments, tuition sales, and security controls.
@@ -374,6 +374,9 @@
             </button>
             <a href="{% url 'courses:course_create' %}" class="btn btn-secondary btn-sm d-inline-flex align-items-center gap-1">
                 <span>+</span> Add New Course
+            </a>
+            <a href="{% url 'payments:coupon_list' %}" class="btn btn-secondary btn-sm d-inline-flex align-items-center gap-1">
+                <span>🎟️</span> Coupons
             </a>
             <a href="/admin/accounts/user/" class="btn btn-secondary btn-sm d-inline-flex align-items-center gap-1" target="_blank" rel="noopener">
                 <span>&#128101;</span> Manage Users

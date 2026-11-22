@@ -6,6 +6,16 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # Auto-delegate to local .venv if invoked with system Python
+    venv_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.venv', 'Scripts', 'python.exe')
+    if not os.path.exists(venv_py):
+        venv_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.venv', 'bin', 'python')
+
+    if os.path.exists(venv_py) and os.path.realpath(sys.executable) != os.path.realpath(venv_py):
+        import subprocess
+        result = subprocess.run([venv_py] + sys.argv)
+        sys.exit(result.returncode)
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lms_project.settings')
     try:
         from django.core.management import execute_from_command_line

@@ -11,9 +11,9 @@ class PaymentTransactionInline(admin.TabularInline):
 
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ['code', 'discount_percent', 'used_count', 'max_uses', 'valid_until', 'is_active', 'created_at']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['code']
+    list_display = ['code', 'discount_percent', 'course', 'created_by', 'used_count', 'max_uses', 'valid_until', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at', 'course']
+    search_fields = ['code', 'course__title', 'created_by__username']
     actions = ['activate_coupons', 'deactivate_coupons']
 
     @admin.action(description="Activate selected coupons")

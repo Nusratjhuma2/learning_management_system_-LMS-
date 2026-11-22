@@ -39,9 +39,10 @@ class UserAdmin(BaseUserAdmin):
     # Standard users do not expose superuser/staff or full permission grant checkboxes
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Personal & Contact info', {'fields': ('first_name', 'last_name', 'email', 'phone_number', 'address', 'city', 'state', 'postal_code', 'country')}),
+        ('Academic Information', {'fields': ('institution_name', 'student_id', 'department', 'degree_program', 'academic_year', 'gpa')}),
         ('LMS Profile & Role', {
-            'fields': ('role', 'bio', 'profile_picture', 'phone_number', 'max_devices', 'xp_points', 'streak_days')
+            'fields': ('role', 'bio', 'profile_picture', 'max_devices', 'xp_points', 'streak_days')
         }),
         ('Permissions & Status', {
             'fields': ('is_active',),
@@ -79,12 +80,13 @@ class AdministratorAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Personal & Contact info', {'fields': ('first_name', 'last_name', 'email', 'phone_number', 'address', 'city', 'state', 'postal_code', 'country')}),
+        ('Academic Information', {'fields': ('institution_name', 'student_id', 'department', 'degree_program', 'academic_year', 'gpa')}),
         ('Administrative Role & Access', {
             'fields': ('role', 'is_active', 'is_staff', 'is_superuser'),
             'description': 'Administrators have full system privileges and permissions across all modules.',
         }),
-        ('LMS Profile', {'fields': ('bio', 'profile_picture', 'phone_number', 'max_devices')}),
+        ('LMS Profile', {'fields': ('bio', 'profile_picture', 'max_devices')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 

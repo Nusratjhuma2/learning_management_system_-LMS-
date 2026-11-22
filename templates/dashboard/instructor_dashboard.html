@@ -15,7 +15,7 @@
                         <span class="badge bg-dark text-white px-2 py-1">INSTRUCTOR STUDIO</span>
                         <span class="badge bg-light text-dark border px-2 py-1">Faculty Academic Console</span>
                     </div>
-                    <h2 class="h3 fw-bold text-dark mb-1">Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
+                    <h2 class="h3 fw-bold text-dark mb-1">Welcome, <a href="{% url 'accounts:profile' %}" class="text-dark text-decoration-none border-bottom border-dark" title="View Personal Profile">{{ request.user.get_full_name|default:request.user.username }}</a></h2>
                     <p class="text-muted small mb-0">Course delivery, grading queue, assessment oversight, and student Q&amp;A.</p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
@@ -24,6 +24,9 @@
                     </a>
                     <a href="{% url 'assignments:instructor_assignments' %}" class="btn btn-secondary btn-sm">
                         Assignment Portal
+                    </a>
+                    <a href="{% url 'payments:coupon_list' %}" class="btn btn-secondary btn-sm d-inline-flex align-items-center gap-1">
+                        <span>🎟️</span> Coupons
                     </a>
                 </div>
             </div>
@@ -215,5 +218,4 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

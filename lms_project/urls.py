@@ -5,10 +5,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
+from accounts import views as accounts_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('instructors/', accounts_views.instructor_list, name='instructors_root'),
+    path('instructors/<str:username>/', accounts_views.instructor_detail, name='instructor_detail_root'),
     path('courses/', include('courses.urls')),
     path('lessons/', include('lessons.urls')),
     path('quizzes/', include('quizzes.urls')),
