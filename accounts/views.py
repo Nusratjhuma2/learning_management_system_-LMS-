@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -7,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from courses.models import Course, CourseReview
 from enrollments.models import Enrollment
+from payments.models import Order
 from .forms import ProfileUpdateForm, SignUpForm
 from .models import User
 
@@ -33,7 +35,7 @@ def signup_view(request):
 
 @login_required
 def profile_view(request):
-    """Display and update user profile."""
+    """Display and update user profile, including personal purchased courses and prices."""
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
@@ -42,7 +44,52 @@ def profile_view(request):
             return redirect('accounts:profile')
     else:
         form = ProfileUpdateForm(instance=request.user)
-    return render(request, 'accounts/profile.html', {'form': form})
+
+    completed_orders = (
+        Order.objects.filter(user=request.user, status=Order.Status.COMPLETED)
+        .select_related('course', 'course__instructor', 'coupon')
+        .order_by('-created_at')
+    )
+    enrollments = (
+        Enrollment.objects.filter(student=request.user)
+        .select_related('course', 'course__instructor')
+        .order_by('-enrolled_at')
+    )
+
+    purchased_courses = []
+    ordered_course_ids = set()
+
+    for order in completed_orders:
+        ordered_course_ids.add(order.course_id)
+        purchased_courses.append({
+            'course': order.course,
+            'order': order,
+            'paid_amount': order.final_amount,
+            'original_price': order.course.price,
+            'discount_amount': order.discount_amount,
+            'coupon': order.coupon,
+            'date': order.created_at,
+            'is_free': order.course.is_free and order.final_amount == Decimal('0.00'),
+        })
+
+    for enr in enrollments:
+        if enr.course_id not in ordered_course_ids:
+            course = enr.course
+            purchased_courses.append({
+                'course': course,
+                'order': None,
+                'paid_amount': Decimal('0.00') if course.is_free else course.effective_price,
+                'original_price': course.price,
+                'discount_amount': course.savings_amount,
+                'coupon': None,
+                'date': enr.enrolled_at,
+                'is_free': course.is_free,
+            })
+
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'purchased_courses': purchased_courses,
+    })
 
 
 def instructor_list(request):
@@ -154,6 +201,8 @@ def instructor_detail(request, username):
     if request.user.is_authenticated:
         enrolled_course_ids = set(
             Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
+        ) | set(
+            Order.objects.filter(user=request.user, status=Order.Status.COMPLETED).values_list('course_id', flat=True)
         )
 
     return render(request, 'accounts/instructor_detail.html', {

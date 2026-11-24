@@ -3,24 +3,28 @@
 
 {% block title %}Profile Settings - LMS{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}?v=20261125">
+{% endblock %}
+
 {% block main_class %}container-fluid px-3 px-md-4 px-xl-5 my-4{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
-    <div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border: 1px solid #e2e8f0 !important; border-radius: 12px;">
+<div class="profile-page-wrap">
+    <div class="card border-0 shadow-sm p-4 mb-4 bg-white profile-card">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center gap-3">
                 {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle border" width="64" height="64" style="object-fit: cover;">
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle border profile-avatar-img">
                 {% else %}
-                    <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width: 64px; height: 64px; font-size: 1.35rem;">
+                    <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold profile-avatar-placeholder">
                         {{ user.username|slice:":2"|upper }}
                     </div>
                 {% endif %}
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                         <h4 class="fw-bold text-dark mb-0">{{ user.get_full_name|default:user.username }}</h4>
-                        <span class="badge bg-dark text-white text-uppercase" style="font-size: 0.68rem;">{{ user.get_role_display }}</span>
+                        <span class="badge bg-dark text-white text-uppercase profile-role-badge">{{ user.get_role_display }}</span>
                     </div>
                     <div class="text-muted small">
                         <span>{{ user.email|default:"No email set" }}</span>
@@ -55,7 +59,81 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm bg-white" style="border: 1px solid #e2e8f0 !important; border-radius: 12px;">
+    <div class="card border-0 shadow-sm mb-4 bg-white profile-card">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h5 class="mb-1 fw-bold text-dark">My Purchased &amp; Enrolled Courses</h5>
+                <p class="text-muted small mb-0">Private tuition receipts and course pricing visible only on your personal profile.</p>
+            </div>
+            <a href="{% url 'payments:order_history' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3">Order History &rarr;</a>
+        </div>
+        <div class="card-body p-0">
+            {% if purchased_courses %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light text-uppercase text-secondary">
+                            <tr>
+                                <th class="ps-4">Course</th>
+                                <th>Course Price / Paid</th>
+                                <th>Date</th>
+                                <th class="text-end pe-4">Receipt &amp; Access</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in purchased_courses %}
+                                <tr class="purchased-course-row">
+                                    <td class="ps-4">
+                                        <a href="{% url 'courses:course_detail' item.course.slug %}" class="fw-bold text-dark text-decoration-none">
+                                            {{ item.course.title }}
+                                        </a>
+                                        <div class="text-muted small">
+                                            Prof. {{ item.course.instructor.get_full_name|default:item.course.instructor.username }}
+                                            {% if item.order %}
+                                                &bull; <span class="font-monospace">{{ item.order.order_id }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if item.is_free %}
+                                            <span class="badge bg-light text-success border fw-bold">Free</span>
+                                        {% else %}
+                                            <div class="d-flex align-items-baseline gap-2 flex-wrap">
+                                                <span class="purchased-price-paid">${{ item.paid_amount }}</span>
+                                                {% if item.original_price > item.paid_amount %}
+                                                    <span class="text-muted text-decoration-line-through purchased-price-original">${{ item.original_price }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if item.coupon %}
+                                                <span class="badge bg-light text-dark border mt-1">Coupon {{ item.coupon.code }} (-{{ item.coupon.discount_percent }}%)</span>
+                                            {% elif item.discount_amount > 0 %}
+                                                <span class="badge bg-light text-success border mt-1">Saved ${{ item.discount_amount }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted text-nowrap">{{ item.date|date:"M d, Y" }}</td>
+                                    <td class="text-end pe-4 text-nowrap">
+                                        <div class="d-inline-flex gap-1">
+                                            {% if item.order %}
+                                                <a href="{% url 'payments:order_invoice' item.order.order_id %}" class="btn btn-outline-secondary btn-sm">Invoice</a>
+                                            {% endif %}
+                                            <a href="{% url 'courses:course_detail' item.course.slug %}" class="btn btn-dark btn-sm">Study &rarr;</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 px-3 text-muted small">
+                    You have not purchased or enrolled in any courses yet.
+                    <a href="{% url 'courses:course_list' %}" class="fw-semibold text-dark text-decoration-none ms-1">Browse Catalog &rarr;</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-white profile-card">
         <div class="card-header bg-white border-bottom py-3 px-4">
             <h5 class="mb-1 fw-bold text-dark">Profile Information</h5>
             <p class="text-muted small mb-0">Update your name, contact details, address, and academic record.</p>

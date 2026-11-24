@@ -1,0 +1,16 @@
+/* ===== INVOICE PAGE CSS ===== */
+
+@media print {
+    body {
+        background: #fff !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}

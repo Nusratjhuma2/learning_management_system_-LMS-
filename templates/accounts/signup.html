@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Create Account | LMS Portal{% endblock %}
 
@@ -47,18 +48,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('signup-form');
-    const submitBtn = document.getElementById('btn-submit-signup');
-    if (form && submitBtn) {
-        form.addEventListener('submit', function () {
-            // Prevent multiple rapid clicks causing race conditions
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Registering Account...';
-        });
-    }
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/signup.js' %}?v=20261125"></script>
 {% endblock %}

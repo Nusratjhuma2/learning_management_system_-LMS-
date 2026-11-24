@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Lesson, LessonNote, LessonProgress
+from .models import Lesson, LessonNote, LessonProgress, LessonTranscriptSegment
 
 
 class LessonProgressInline(admin.TabularInline):
@@ -44,3 +44,10 @@ class LessonNoteAdmin(admin.ModelAdmin):
     @admin.display(description='Note Content')
     def get_preview(self, obj):
         return (obj.content[:50] + '...') if len(obj.content) > 50 else obj.content
+
+
+@admin.register(LessonTranscriptSegment)
+class LessonTranscriptSegmentAdmin(admin.ModelAdmin):
+    list_display = ['lesson', 'order', 'start_seconds', 'end_seconds', 'text']
+    list_filter = ['lesson__course']
+    search_fields = ['lesson__title', 'text']

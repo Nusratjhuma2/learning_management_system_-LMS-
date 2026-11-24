@@ -3,6 +3,10 @@
 
 {% block title %}Student Academic Portal | LMS{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}?v=20261125">
+{% endblock %}
+
 {% block main_class %}container-fluid px-3 px-md-4 px-xl-5 my-4{% endblock %}
 
 {% block content %}
@@ -97,13 +101,13 @@
                         <small class="text-muted">Courses you are currently studying ({{ enrollments.count }} Total)</small>
                     </div>
                     <div class="d-flex align-items-center gap-1">
-                        <button type="button" class="btn btn-sm btn-filter-tab active" data-filter="all" onclick="filterCourses('all', this)">
+                        <button type="button" class="btn btn-sm btn-filter-tab active" data-filter="all">
                             All ({{ enrollments.count }})
                         </button>
-                        <button type="button" class="btn btn-sm btn-filter-tab" data-filter="in_progress" onclick="filterCourses('in_progress', this)">
+                        <button type="button" class="btn btn-sm btn-filter-tab" data-filter="in_progress">
                             In Progress
                         </button>
-                        <button type="button" class="btn btn-sm btn-filter-tab" data-filter="completed" onclick="filterCourses('completed', this)">
+                        <button type="button" class="btn btn-sm btn-filter-tab" data-filter="completed">
                             Completed
                         </button>
                         <a href="{% url 'enrollments:my_courses' %}" class="btn btn-secondary btn-sm py-1 px-2 ms-1" style="font-size: 0.75rem;">
@@ -292,204 +296,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<style>
-/* Student Welcome Banner */
-.student-welcome-banner {
-    background-color: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-left: 5px solid #0f172a !important;
-    border-radius: 14px !important;
-    padding: 1.5rem 1.75rem !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-}
-
-/* Student Avatar Box with Profile Edit Link */
-.student-avatar-box {
-    width: 62px;
-    height: 62px;
-    min-width: 62px;
-    min-height: 62px;
-    border-radius: 50%;
-    background-color: #0f172a;
-    color: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    font-weight: 800;
-    text-decoration: none;
-    position: relative;
-    flex-shrink: 0;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 2px solid #e2e8f0;
-}
-.student-avatar-box:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
-    color: #ffffff;
-}
-.student-avatar-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-}
-.avatar-edit-badge {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 20px;
-    height: 20px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* Clickable Profile Name Link */
-.student-profile-link {
-    color: #0f172a;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border-bottom: 2px solid transparent;
-    transition: all 0.18s ease;
-    cursor: pointer;
-}
-.student-profile-link:hover {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
-}
-.student-profile-link:hover .profile-arrow-icon {
-    transform: translate(2px, -2px);
-    color: #2563eb;
-}
-.profile-arrow-icon {
-    transition: transform 0.18s ease, color 0.18s ease;
-    color: #94a3b8;
-}
-
-/* Stat Pill Boxes */
-.stat-pill-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 0.75rem 1.25rem;
-    min-width: 120px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.stat-pill-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    background: #ffffff;
-    border-color: #cbd5e1;
-}
-.stat-pill-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #64748b;
-    display: block;
-}
-.stat-pill-value {
-    font-size: 1.45rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin: 2px 0;
-}
-.stat-pill-sub {
-    font-size: 0.7rem;
-    color: #475569;
-    font-weight: 500;
-}
-
-/* Dynamic Filter Tabs */
-.btn-filter-tab {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 0.25rem 0.65rem;
-    border-radius: 20px;
-    transition: all 0.15s ease;
-}
-.btn-filter-tab:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-}
-.btn-filter-tab.active {
-    background: #0f172a;
-    color: #ffffff;
-    border-color: #0f172a;
-}
-
-/* Card Hover Elevation */
-.dynamic-dashboard-card {
-    transition: box-shadow 0.2s ease;
-}
-.dynamic-dashboard-card:hover {
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
-}
-.course-enrollment-card:hover {
-    background: #ffffff !important;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.04);
-}
-.course-title-link:hover {
-    color: #2563eb !important;
-}
-.cert-item-card:hover {
-    background: #ffffff !important;
-    border-color: #cbd5e1 !important;
-}
-.badge-pill-hover {
-    transition: transform 0.15s ease, background-color 0.15s ease;
-}
-.badge-pill-hover:hover {
-    transform: translateY(-2px);
-    background-color: #ffffff !important;
-    border-color: #0f172a !important;
-}
-</style>
-
-<script>
-// Dynamic filtering and animated progress bars
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Animate Progress Bars on Load
-    setTimeout(function() {
-        document.querySelectorAll('.progress-bar-animated').forEach(function(bar) {
-            var target = bar.getAttribute('data-target-width') || '0%';
-            bar.style.transition = 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)';
-            bar.style.width = target;
-        });
-    }, 150);
-});
-
-// 2. Dynamic Course Filter (All / In Progress / Completed)
-function filterCourses(filterType, btn) {
-    document.querySelectorAll('.btn-filter-tab').forEach(function(b) {
-        b.classList.remove('active');
-    });
-    btn.classList.add('active');
-
-    var cards = document.querySelectorAll('.course-enrollment-card');
-    cards.forEach(function(card) {
-        var status = card.getAttribute('data-status');
-        if (filterType === 'all') {
-            card.style.display = 'block';
-        } else if (filterType === status) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-</script>
+{% block extra_js %}
+<script src="{% static 'js/student_dashboard.js' %}?v=20261125"></script>
 {% endblock %}

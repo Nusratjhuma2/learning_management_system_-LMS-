@@ -5,6 +5,10 @@
 
 {% block main_class %}container-fluid px-3 px-md-4 px-xl-5 my-4{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/instructor_list.css' %}?v=20261125">
+{% endblock %}
+
 {% block content %}
 <div style="max-width: 1200px; margin: 0 auto;">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
@@ -170,11 +174,4 @@
         {% endfor %}
     </div>
 </div>
-
-<style>
-.instructor-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
-}
-</style>
 {% endblock %}

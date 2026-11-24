@@ -1,0 +1,10 @@
+/* ===== INSTRUCTOR LIST PAGE CSS ===== */
+
+.instructor-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.instructor-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
+}

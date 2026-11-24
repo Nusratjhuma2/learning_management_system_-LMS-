@@ -3,6 +3,10 @@
 
 {% block title %}{{ lesson.title }} - {{ lesson.course.title }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lesson_detail.css' %}?v=20261125">
+{% endblock %}
+
 {% block content %}
 <!-- Breadcrumb Header -->
 <nav aria-label="breadcrumb" class="mb-4">
@@ -37,69 +41,132 @@
             </div>
 
             <!-- Video Player Presentation -->
-            {% if lesson.is_embed_video %}
-                <!-- Responsive YouTube / Vimeo Educational Video Player -->
-                <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm mb-3 bg-black border">
-                    <iframe src="{{ lesson.embed_video_url }}?rel=0&modestbranding=1"
-                            title="{{ lesson.title }}"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerpolicy="strict-origin-when-cross-origin"
-                            allowfullscreen
-                            style="border: 0; width: 100%; height: 100%;">
-                    </iframe>
+            {% if lesson.is_embed_video or lesson.has_direct_video %}
+                <div id="lms-player-shell" class="lms-player-shell rounded-3 overflow-hidden mb-3 border shadow-sm bg-black">
+                    {% if lesson.is_embed_video %}
+                        <!-- Responsive YouTube / Vimeo Educational Video Player -->
+                        <div class="ratio ratio-16x9 bg-black">
+                            <iframe id="lms-embed-player"
+                                    class="border-0 w-100 h-100"
+                                    data-base-embed-url="{{ lesson.embed_video_url }}"
+                                    src="{{ lesson.embed_video_url }}?rel=0&modestbranding=1&enablejsapi=1"
+                                    title="{{ lesson.title }}"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                    {% elif lesson.has_direct_video %}
+                        <!-- Secured Custom HTML5 Anti-Download Video Stage -->
+                        <div id="lms-player-container" class="position-relative bg-black overflow-hidden select-none">
+                            <video id="lms-video-player"
+                                   class="w-100 d-block"
+                                   playsinline
+                                   preload="metadata"
+                                   controlsList="nodownload noRemotePlayback"
+                                   disablePictureInPicture>
+                                {% if lesson.raw_video and not lesson.hls_playlist_relpath and protected_stream_url %}
+                                    <source src="{{ protected_stream_url }}" type="video/mp4">
+                                {% elif lesson.video_url and not lesson.hls_playlist_relpath %}
+                                    <source src="{{ lesson.video_url }}" type="video/mp4">
+                                {% endif %}
+                                Your browser does not support protected HTML5 video playback.
+                            </video>
+
+                            <!-- Dynamic Floating Anti-Screen-Recording Watermark -->
+                            <div id="lms-watermark"
+                                 class="position-absolute text-white pointer-events-none fw-bold small text-nowrap"
+                                 style="z-index: 15; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); font-size: 0.8rem; letter-spacing: 0.5px; opacity: 0.45; top: 20%; left: 15%; transition: top 1.5s ease, left 1.5s ease, opacity 1s ease;">
+                                {{ user.get_full_name|default:user.username }} | {{ user.email }} | ID:{{ user.id }} | IP:{{ client_ip }}
+                            </div>
+
+                            <!-- Live Synchronized Transcript Caption Overlay -->
+                            <div id="lms-live-caption" class="lms-live-caption-bar d-none" aria-live="polite"></div>
+
+                            <!-- Privacy Curtain (Active on Tab Switch, Screen Capture, or Window Blur) -->
+                            <div id="lms-privacy-curtain"
+                                 class="position-absolute top-0 start-0 w-100 h-100 bg-black text-white d-flex flex-column align-items-center justify-content-center text-center p-4 cursor-pointer"
+                                 style="z-index: 20; display: none;">
+                                <div class="spinner-grow text-secondary mb-3" role="status"></div>
+                                <h5 class="fw-bold mb-1">Protected Media Content Paused</h5>
+                                <p class="text-secondary small mb-3">Playback is obscured during window focus change or screen capture event.</p>
+                                <button type="button" id="btn-resume-playback" class="btn btn-outline-light btn-sm px-3">
+                                    Click to Resume Playback &rarr;
+                                </button>
+                            </div>
+
+                            <!-- Red Security Violation Lockdown Overlay -->
+                            <div id="lms-violation-overlay"
+                                 class="position-absolute top-0 start-0 w-100 h-100 bg-danger text-white d-flex flex-column align-items-center justify-content-center text-center p-4 d-none"
+                                 style="z-index: 25;">
+                                <h4 class="fw-bold mb-2">Security Policy Violation</h4>
+                                <p class="small mb-0">Player tampering or unauthorized recording detected. Stream has been locked and logged to security audit.</p>
+                            </div>
+                        </div>
+
+                        <!-- Custom Structured Player Controls Dock -->
+                        <div id="lms-controls-dock" class="lms-controls-dock px-3 py-2 text-white">
+                            <div id="lms-seekbar-outer" class="lms-seekbar-outer position-relative w-100 mb-2" role="slider" aria-label="Video playback timeline" tabindex="0">
+                                <div id="lms-seekbar-buffered" class="lms-seekbar-buffered"></div>
+                                <div id="lms-seekbar-progress" class="lms-seekbar-progress"></div>
+                                <div id="lms-cue-markers-layer" class="lms-cue-markers-layer"></div>
+                            </div>
+
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <button id="btn-player-play" type="button" class="btn btn-sm btn-light fw-semibold">Play</button>
+                                    <button id="btn-player-rew" type="button" class="btn btn-sm btn-outline-light">-10s</button>
+                                    <button id="btn-player-fwd" type="button" class="btn btn-sm btn-outline-light">+10s</button>
+                                    <span id="player-time-display" class="small font-monospace text-light ms-1">00:00 / 00:00</span>
+                                    <button id="btn-player-mute" type="button" class="btn btn-sm btn-outline-light ms-2">Mute</button>
+                                    <input id="input-player-volume" type="range" min="0" max="1" step="0.05" value="1" class="form-range lms-volume-slider" aria-label="Volume">
+                                </div>
+
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span id="player-active-quality-badge" class="badge bg-secondary">
+                                        {% if lesson.hls_playlist_relpath %}Auto ABR{% else %}Protected Stream{% endif %}
+                                    </span>
+                                    <select id="select-player-quality" class="form-select form-select-sm w-auto bg-dark text-white border-secondary" aria-label="Stream quality">
+                                        <option value="-1">Auto</option>
+                                        {% for q in video_qualities %}
+                                            <option value="{{ forloop.counter0 }}">
+                                                {% if q.label %}{{ q.label }}{% elif q.height %}{{ q.height }}p{% else %}{{ q }}{% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <select id="select-player-speed" class="form-select form-select-sm w-auto bg-dark text-white border-secondary" aria-label="Playback speed">
+                                        <option value="0.75">0.75x</option>
+                                        <option value="1" selected>1x</option>
+                                        <option value="1.25">1.25x</option>
+                                        <option value="1.5">1.5x</option>
+                                        <option value="2">2x</option>
+                                    </select>
+                                    <button id="btn-player-cc" type="button" class="btn btn-sm btn-outline-light">CC</button>
+                                    <button id="btn-player-theater" type="button" class="btn btn-sm btn-outline-light">Theater</button>
+                                    <button id="btn-player-fullscreen" type="button" class="btn btn-sm btn-outline-light">Fullscreen</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded-3 border">
-                    <span class="small text-muted">Lecture Stream: {{ lesson.title }}</span>
-                    <button id="btn-mark-completed" type="button" class="btn btn-sm {% if progress.is_completed %}btn-secondary{% else %}btn-dark{% endif %}">
-                        {% if progress.is_completed %}Completed ✓{% else %}Mark as Completed ✓{% endif %}
-                    </button>
-                </div>
-
-            {% elif lesson.has_direct_video %}
-                <!-- Secured HTML5 Anti-Download Player Container -->
-                <div id="lms-player-container" class="position-relative bg-black rounded-3 overflow-hidden mb-3 border shadow-sm select-none" style="min-height: 380px;">
-                    <!-- Video Element with Anti-Download Attributes -->
-                    <video id="lms-video-player"
-                           class="w-100 h-100 d-block"
-                           controls
-                           controlsList="nodownload noRemotePlayback"
-                           disablePictureInPicture
-                           oncontextmenu="return false;">
-                        {% if lesson.raw_video and not lesson.hls_playlist_relpath %}
-                            <source src="{{ lesson.raw_video.url }}" type="video/mp4">
-                        {% elif lesson.video_url %}
-                            <source src="{{ lesson.video_url }}" type="video/mp4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-3 bg-light rounded-3 border">
+                    <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+                        <span class="fw-semibold text-dark">{{ lesson.title }}</span>
+                        {% if lesson.has_direct_video %}
+                            <span class="badge bg-dark-subtle text-dark border">Download-Protected Stream</span>
+                            {% if lesson.transcode_status == 'ready' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">Adaptive Multi-Quality (1080p / 720p / 480p)</span>
+                            {% elif lesson.transcode_status == 'stream_only' %}
+                                <span class="badge bg-secondary-subtle text-secondary border">Protected Range Stream</span>
+                            {% endif %}
                         {% endif %}
-                        Your browser does not support protected HTML5 video playback.
-                    </video>
-
-                    <!-- Dynamic Floating Anti-Screen-Recording Watermark -->
-                    <div id="lms-watermark"
-                         class="position-absolute text-white pointer-events-none fw-bold small text-nowrap"
-                         style="z-index: 15; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); font-size: 0.8rem; letter-spacing: 0.5px; opacity: 0.45; top: 20%; left: 15%; transition: top 1.5s ease, left 1.5s ease, opacity 1s ease;">
-                        {{ user.get_full_name|default:user.username }} | {{ user.email }} | ID:{{ user.id }} | IP:{{ client_ip }}
                     </div>
-
-                    <!-- Privacy Curtain (Active on Tab Switch, Screen Capture, or Window Blur) -->
-                    <div id="lms-privacy-curtain"
-                         class="position-absolute top-0 start-0 w-100 h-100 bg-black text-white d-flex flex-column align-items-center justify-content-center text-center p-4 cursor-pointer"
-                         style="z-index: 20; display: none;">
-                        <div class="spinner-grow text-secondary mb-3" role="status"></div>
-                        <h5 class="fw-bold mb-1">Protected Media Content Paused</h5>
-                        <p class="text-secondary small mb-3">Playback is obscured during window focus change or screen capture event.</p>
-                        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="if(window.LMSResumePlayback) window.LMSResumePlayback();">
-                            Click to Resume Playback &rarr;
+                    {% if lesson.is_embed_video %}
+                        <button id="btn-mark-completed" type="button" class="btn btn-sm {% if progress.is_completed %}btn-secondary{% else %}btn-dark{% endif %}">
+                            {% if progress.is_completed %}Completed ✓{% else %}Mark as Completed ✓{% endif %}
                         </button>
-                    </div>
-
-                    <!-- Red Security Violation Lockdown Overlay -->
-                    <div id="lms-violation-overlay"
-                         class="position-absolute top-0 start-0 w-100 h-100 bg-danger text-white d-flex flex-column align-items-center justify-content-center text-center p-4 d-none"
-                         style="z-index: 25;">
-                        <h4 class="fw-bold mb-2">Security Policy Violation</h4>
-                        <p class="small mb-0">Player tampering or unauthorized recording detected. Stream has been locked and logged to security audit.</p>
-                    </div>
+                    {% endif %}
                 </div>
 
             {% elif lesson.content_type == 'file' and lesson.file_upload %}
@@ -123,6 +190,80 @@
                     </button>
                 </div>
             {% endif %}
+
+            <!-- Interactive Clickable & Timeline-Synced Transcript Panel -->
+            <div id="lms-transcript-panel" class="card border rounded-3 mb-3 shadow-sm">
+                <div class="card-header bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 py-2.5 px-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="fw-bold text-dark small">Interactive Lecture Transcript</span>
+                        <span id="transcript-cue-count" class="badge bg-white text-dark border">{{ transcript_segments|length }} lines</span>
+                        <span id="transcript-span-badge" class="badge bg-dark text-white">
+                            {% if lesson.transcript_duration_seconds %}
+                                Length: {{ lesson.transcript_duration_seconds }}s
+                            {% elif lesson.duration_seconds %}
+                                Length: {{ lesson.duration_seconds }}s
+                            {% else %}
+                                Auto Length
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="chk-transcript-sync" checked>
+                        <label class="form-check-label small text-secondary" for="chk-transcript-sync">Sync video to transcript length</label>
+                    </div>
+                </div>
+
+                <div class="card-body p-3">
+                    <p class="text-muted small mb-2">Click any transcript line below to jump playback directly to that timestamp.</p>
+                    <div id="transcript-cue-list" class="lms-transcript-list d-flex flex-column gap-1">
+                        {% for seg in transcript_segments %}
+                            <button type="button"
+                                    class="transcript-cue-item w-100 text-start border-0 rounded-2 px-3 py-2 d-flex align-items-start gap-2"
+                                    data-cue-id="{{ seg.id|default:forloop.counter }}"
+                                    data-start="{{ seg.start_seconds }}"
+                                    data-end="{{ seg.end_seconds }}">
+                                <span class="transcript-ts-badge badge font-monospace flex-shrink-0">{{ seg.formatted_start }}</span>
+                                <span class="small text-dark">{{ seg.text }}</span>
+                            </button>
+                        {% empty %}
+                            <div class="text-muted small p-3 bg-light rounded-2 border">
+                                No timed transcript lines generated yet.
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if is_instructor_or_admin %}
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <span class="fw-semibold small text-dark">Generate / Adjust Transcript Timeline</span>
+                                <span id="transcript-gen-feedback" class="small text-muted"></span>
+                            </div>
+                            <textarea id="transcript-source-input"
+                                      class="form-control form-control-sm mb-2"
+                                      rows="3"
+                                      placeholder="Paste WebVTT, SRT, [mm:ss] lines, or plain lecture text to auto-time cues...">{{ lesson.text_content }}</textarea>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <div class="input-group input-group-sm w-auto">
+                                    <span class="input-group-text">Target Length (sec)</span>
+                                    <input type="number"
+                                           id="transcript-target-length"
+                                           class="form-control"
+                                           min="5"
+                                           step="1"
+                                           value="{{ lesson.transcript_duration_seconds|default:lesson.duration_seconds|default:'' }}"
+                                           placeholder="Auto">
+                                </div>
+                                <button type="button" id="btn-generate-transcript" class="btn btn-sm btn-dark">
+                                    Generate Timed Transcript
+                                </button>
+                                <button type="button" id="btn-generate-outline-transcript" class="btn btn-sm btn-outline-secondary">
+                                    Auto-Generate Outline
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Interactive Study Notes & Text Tab -->
             <div class="mt-3">
@@ -245,156 +386,31 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <!-- HLS.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<!-- Video Protection Engine -->
-<script src="{% static 'js/video-protection.js' %}"></script>
-
+<!-- Video Protection & Custom Player Engines -->
+<script src="{% static 'js/video-protection.js' %}?v=20261125"></script>
+<script src="{% static 'js/lms-player.js' %}?v=20261125"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const video = document.getElementById('lms-video-player');
-    const hlsManifestUrl = "{% if lesson.hls_playlist_relpath %}{% url 'lessons:hls_manifest' lesson.course.slug lesson.id %}?token={{ stream_token }}{% endif %}";
-
-    // Initialize Protected LMS Video Security
-    if (video && window.LMSVideoSecurity) {
-        window.LMSVideoSecurity({
-            wrapperId: 'lms-player-container',
-            videoId: 'lms-video-player',
-            watermarkId: 'lms-watermark',
-            curtainId: 'lms-privacy-curtain',
-            violationOverlayId: 'lms-violation-overlay',
-            hlsManifestUrl: hlsManifestUrl,
-            heartbeatUrl: "{% url 'lessons:heartbeat_api' lesson.id %}",
-            securityLogUrl: "{% url 'lessons:log_security_violation_api' %}",
-            csrfToken: "{{ csrf_token }}",
-            lessonId: {{ lesson.id }},
-            minWatchPercent: {{ lesson.min_watch_percent|default:85 }},
-            durationSeconds: {{ lesson.duration_seconds|default:0 }},
-            lastPositionSeconds: {{ progress.last_position_seconds|default:0 }}
-        });
-    }
-
-    // Mark Lecture Completed Button (for embedded or text lectures)
-    const markCompleteBtn = document.getElementById('btn-mark-completed');
-    if (markCompleteBtn) {
-        markCompleteBtn.addEventListener('click', function () {
-            fetch("{% url 'lessons:mark_completed_api' lesson.id %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': "{{ csrf_token }}"
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    markCompleteBtn.textContent = 'Completed ✓';
-                    markCompleteBtn.classList.remove('btn-dark');
-                    markCompleteBtn.classList.add('btn-secondary');
-                    const indicator = document.getElementById('lesson-completion-indicator');
-                    if (indicator) {
-                        indicator.classList.remove('d-none');
-                        indicator.classList.add('bg-dark', 'text-white');
-                        indicator.textContent = 'Completed ✓';
-                    }
-                }
-            })
-            .catch(() => {});
-        });
-    }
-
-    // Save Study Note API Call
-    const saveNoteBtn = document.getElementById('save-note-btn');
-    const noteInput = document.getElementById('note-input');
-    const notesList = document.getElementById('notes-list');
-
-    if (saveNoteBtn && noteInput) {
-        saveNoteBtn.addEventListener('click', function () {
-            const text = noteInput.value.trim();
-            if (!text) return;
-            const currentSec = Math.floor(video ? video.currentTime : 0);
-
-            fetch("{% url 'lessons:save_note_api' lesson.id %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': "{{ csrf_token }}"
-                },
-                body: JSON.stringify({
-                    timestamp_seconds: currentSec,
-                    note_text: text
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    noteInput.value = '';
-                    const noNotes = document.getElementById('no-notes-text');
-                    if (noNotes) noNotes.remove();
-
-                    const item = document.createElement('div');
-                    item.className = 'p-2.5 bg-white rounded border mb-2 d-flex justify-content-between align-items-center';
-                    item.innerHTML = `
-                        <div>
-                            <span class="badge bg-light text-dark border me-2">${data.timestamp}s</span>
-                            <span class="text-secondary small">${data.text}</span>
-                        </div>
-                        <span class="text-muted small">${data.created_at}</span>
-                    `;
-                    notesList.prepend(item);
-                }
-            })
-            .catch(() => {});
-        });
-    }
-
-    // Save Q&A Thread API Call
-    const saveQaBtn = document.getElementById('save-qa-btn');
-    const qaTitleInput = document.getElementById('qa-title-input');
-    const qaBodyInput = document.getElementById('qa-body-input');
-    const qaThreadsList = document.getElementById('qa-threads-list');
-
-    if (saveQaBtn && qaTitleInput && qaBodyInput) {
-        saveQaBtn.addEventListener('click', function () {
-            const title = qaTitleInput.value.trim();
-            const body = qaBodyInput.value.trim();
-            if (!title || !body) return;
-
-            fetch("{% url 'discussions:create_thread_api' lesson.id %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': "{{ csrf_token }}"
-                },
-                body: JSON.stringify({
-                    title: title,
-                    body: body
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    qaTitleInput.value = '';
-                    qaBodyInput.value = '';
-                    const noQa = document.getElementById('no-qa-text');
-                    if (noQa) noQa.remove();
-
-                    const item = document.createElement('div');
-                    item.className = 'p-3 bg-white rounded border mb-2';
-                    item.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-dark small"><a href="/discussions/thread/${data.thread_id}/" class="text-dark text-decoration-none">${data.title}</a></span>
-                            <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;">New</span>
-                        </div>
-                        <p class="text-secondary small mb-1">${body}</p>
-                        <div class="text-muted small" style="font-size: 0.75rem;">By ${data.author} &bull; Just now</div>
-                    `;
-                    qaThreadsList.prepend(item);
-                }
-            })
-            .catch(() => {});
-        });
-    }
-});
+    window.LESSON_DETAIL_CONFIG = {
+        hlsManifestUrl: "{% if lesson.hls_playlist_relpath %}{% url 'lessons:hls_manifest' lesson.course.slug lesson.id %}?token={{ stream_token }}{% endif %}",
+        heartbeatUrl: "{% url 'lessons:heartbeat_api' lesson.id %}",
+        securityLogUrl: "{% url 'lessons:log_security_violation_api' %}",
+        markCompletedUrl: "{% url 'lessons:mark_completed_api' lesson.id %}",
+        saveNoteUrl: "{% url 'lessons:save_note_api' lesson.id %}",
+        createThreadUrl: "{% url 'discussions:create_thread_api' lesson.id %}",
+        generateTranscriptUrl: "{% url 'lessons:generate_transcript_api' lesson.id %}",
+        csrfToken: "{{ csrf_token }}",
+        lessonId: {{ lesson.id }},
+        minWatchPercent: {{ lesson.min_watch_percent|default:85 }},
+        durationSeconds: {{ lesson.duration_seconds|default:0 }},
+        transcriptDurationSeconds: {{ lesson.transcript_duration_seconds|default:0 }},
+        lastPositionSeconds: {{ progress.last_position_seconds|default:0 }},
+        transcriptCues: {{ transcript_cues_json|safe }}
+    };
 </script>
+<script src="{% static 'js/lesson_detail.js' %}?v=20261125"></script>
 {% endblock %}

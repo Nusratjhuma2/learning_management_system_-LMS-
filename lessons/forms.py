@@ -21,6 +21,10 @@ class LessonForm(forms.ModelForm):
             'drip_days',
             'min_watch_percent',
         ]
+        help_texts = {
+            'raw_video': 'Direct video upload: auto-compressed into 1080p, 720p, and 480p protected HLS stream.',
+            'text_content': 'Supports plain sentences, [mm:ss] timestamps, or SRT/WebVTT to generate synced clickable transcript cues.',
+        }
         widgets = {
             'module': forms.Select(attrs={'class': 'form-select'}),
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Introduction to Regression Analysis'}),

@@ -1,0 +1,157 @@
+/* ===== COURSE LIST PAGE CSS ===== */
+
+/* Compact Minimal Filter Bar */
+.compact-filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.35rem 0.65rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.filter-results-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.filter-query-text {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0f172a;
+}
+
+.filter-count-badge {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 12px;
+}
+
+.filter-divider {
+    width: 1px;
+    height: 18px;
+    background: #e2e8f0;
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+.filter-selects-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.filter-compact-select {
+    height: 30px !important;
+    font-size: 0.76rem !important;
+    padding: 2px 24px 2px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    width: auto !important;
+    min-width: 105px;
+    flex: 1 1 auto;
+}
+
+.filter-compact-select:focus {
+    border-color: #0f172a !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.btn-compact-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 30px;
+    padding: 0 10px;
+    background-color: #0f172a;
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-compact-filter:hover {
+    background-color: #1e293b;
+    transform: translateY(-1px);
+}
+
+.btn-compact-clear {
+    display: inline-flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 8px;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-compact-clear:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+/* Promotional Carousel */
+.promo-carousel-wrap {
+    position: relative;
+}
+
+.promo-ctrl-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.promo-ctrl-btn:hover {
+    background: #334155 !important;
+}
+
+.promo-carousel-wrap:hover #promoProgress {
+    animation-play-state: paused;
+}
+
+@media (max-width: 767px) {
+    .promo-thumb-col {
+        width: 120px !important;
+        min-width: 100px !important;
+    }
+    .promo-slide {
+        min-height: 160px !important;
+    }
+}
+
+@media (max-width: 575px) {
+    .promo-thumb-col {
+        display: none !important;
+    }
+}

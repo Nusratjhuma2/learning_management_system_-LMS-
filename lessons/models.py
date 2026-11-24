@@ -58,6 +58,13 @@ class Lesson(models.Model):
     is_free_preview = models.BooleanField(default=False)
     drip_days = models.PositiveIntegerField(default=0)
     min_watch_percent = models.PositiveIntegerField(default=85)
+    class TranscodeStatus(models.TextChoices):
+        NONE = 'none', 'None'
+        PENDING = 'pending', 'Pending'
+        READY = 'ready', 'Multi-Quality HLS Ready'
+        STREAM_ONLY = 'stream_only', 'Protected Direct Stream'
+        FAILED = 'failed', 'Failed'
+
     raw_video = models.FileField(
         storage=private_storage,
         upload_to='raw_videos/',
@@ -65,9 +72,16 @@ class Lesson(models.Model):
         null=True,
     )
     hls_playlist_relpath = models.CharField(max_length=255, blank=True)
+    video_qualities = models.JSONField(default=list, blank=True)
+    transcode_status = models.CharField(
+        max_length=20,
+        choices=TranscodeStatus.choices,
+        default=TranscodeStatus.NONE,
+    )
     aes_key = models.BinaryField(max_length=16, null=True, blank=True)
     aes_iv = models.CharField(max_length=32, blank=True)
     duration_seconds = models.PositiveIntegerField(default=0)
+    transcript_duration_seconds = models.PositiveIntegerField(default=0)
 
     # Legacy compatibility fields
     content_type = models.CharField(
@@ -175,3 +189,33 @@ class LessonNote(models.Model):
     @property
     def content(self):
         return self.note_text
+
+
+class LessonTranscriptSegment(models.Model):
+    """Timestamped transcript cue line synchronized with video playback."""
+
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name='transcript_segments',
+    )
+    order = models.PositiveIntegerField(default=1)
+    start_seconds = models.FloatField(default=0.0)
+    end_seconds = models.FloatField(default=0.0)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['start_seconds', 'order', 'id']
+
+    def __str__(self):
+        return f"{self.lesson.title} [{self.formatted_start}] {self.text[:50]}"
+
+    @property
+    def formatted_start(self):
+        total = max(int(self.start_seconds), 0)
+        mins, secs = divmod(total, 60)
+        hours, mins = divmod(mins, 60)
+        if hours > 0:
+            return f"{hours}:{mins:02d}:{secs:02d}"
+        return f"{mins:02d}:{secs:02d}"

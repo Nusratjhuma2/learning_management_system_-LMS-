@@ -192,6 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Form submit confirmation
+    var topSubmitBtn = document.getElementById('btn-submit-quiz-top');
+    if (topSubmitBtn && quizForm) {
+        topSubmitBtn.addEventListener('click', () => {
+            quizForm.requestSubmit();
+        });
+    }
+
     if (quizForm) {
         quizForm.addEventListener('submit', () => {
             isSubmitting = true;

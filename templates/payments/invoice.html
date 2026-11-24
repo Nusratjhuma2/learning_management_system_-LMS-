@@ -1,22 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Invoice: {{ order.order_id }} | LMS{% endblock %}
 
 {% block extra_css %}
-<style>
-@media print {
-    body {
-        background: #fff !important;
-    }
-    .no-print {
-        display: none !important;
-    }
-    .card {
-        border: none !important;
-        box-shadow: none !important;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/invoice.css' %}?v=20261125">
 {% endblock %}
 
 {% block content %}
@@ -28,7 +16,7 @@
                 &larr; Access Enrolled Course
             </a>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print();">
+                <button type="button" id="btn-print-invoice" class="btn btn-outline-dark btn-sm">
                     &#128424; Print Invoice
                 </button>
                 <a href="{% url 'payments:order_history' %}" class="btn btn-dark btn-sm">
@@ -122,5 +110,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/invoice.js' %}?v=20261125"></script>
 {% endblock %}
 

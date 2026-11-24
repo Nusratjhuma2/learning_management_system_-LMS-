@@ -22,9 +22,15 @@ def checkout(request, course_slug):
     """
     course = get_object_or_404(Course, slug=course_slug, status=Course.Status.PUBLISHED)
 
-    # If student is already enrolled
-    if Enrollment.objects.filter(student=request.user, course=course).exists():
-        messages.info(request, f"You are already enrolled in '{course.title}'.")
+    # If student is already enrolled or already bought the course
+    already_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
+    already_purchased = Order.objects.filter(
+        user=request.user, course=course, status=Order.Status.COMPLETED
+    ).exists()
+    if already_enrolled or already_purchased:
+        if already_purchased and not already_enrolled:
+            Enrollment.objects.get_or_create(student=request.user, course=course)
+        messages.info(request, f"You already own '{course.title}'.")
         return redirect('courses:course_detail', slug=course.slug)
 
     # Base price calculation

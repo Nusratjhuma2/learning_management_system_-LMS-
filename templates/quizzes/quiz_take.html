@@ -4,27 +4,7 @@
 {% block title %}Examination: {{ quiz.title }} | LMS{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* Focus mode and proctoring aesthetics */
-    body {
-        user-select: none;
-        -webkit-user-select: none;
-    }
-    .question-card {
-        transition: border-color 0.2s ease;
-    }
-    .question-card:hover {
-        border-color: #cbd5e1 !important;
-    }
-    .form-check-input:checked {
-        background-color: #0f172a;
-        border-color: #0f172a;
-    }
-    .quiz-timer-pill {
-        font-variant-numeric: tabular-nums;
-        letter-spacing: 1px;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/quiz_take.css' %}?v=20261125">
 {% endblock %}
 
 {% block content %}
@@ -88,7 +68,7 @@
                 <span id="quiz-timer-display" class="quiz-timer-pill fw-bold text-dark fs-5">--:--</span>
             </div>
 
-            <button type="button" class="btn btn-sm btn-dark px-3 py-2" onclick="document.getElementById('quiz-form').requestSubmit();">
+            <button type="button" id="btn-submit-quiz-top" class="btn btn-sm btn-dark px-3 py-2">
                 Submit Assessment
             </button>
         </div>

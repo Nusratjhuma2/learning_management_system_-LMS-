@@ -1,0 +1,360 @@
+/* ===== ADMIN DASHBOARD PAGE CSS ===== */
+
+/* Gray & White Theme Variables */
+:root {
+    --gw-bg: #f8fafc;
+    --gw-card: #ffffff;
+    --gw-border: #e2e8f0;
+    --gw-border-strong: #cbd5e1;
+    --gw-text-primary: #0f172a;
+    --gw-text-secondary: #334155;
+    --gw-text-muted: #64748b;
+    --gw-pill-bg: #f1f5f9;
+}
+
+/* Executive Gray & White Banner */
+.gw-banner {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 5px solid #0f172a !important;
+    border-radius: 12px !important;
+    padding: 1.75rem 2rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.gw-banner h1 {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.gw-banner p {
+    color: #475569 !important;
+}
+
+/* Gray & White Navigation Pills */
+.gw-nav-wrap {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 0.65rem 1.25rem !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+    position: sticky !important;
+    top: 60px !important;
+    z-index: 1010 !important;
+}
+
+.gw-nav-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.45rem 1.1rem !important;
+    border-radius: 9999px !important;
+    font-size: 0.825rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    color: #334155 !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+.gw-nav-pill:hover {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    text-decoration: none !important;
+}
+
+.gw-nav-pill.active {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15) !important;
+}
+
+/* Structured Metric Cards */
+.gw-stat-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
+}
+
+.gw-stat-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 14px -2px rgba(15, 23, 42, 0.08) !important;
+    border-color: #cbd5e1 !important;
+}
+
+.gw-stat-label {
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #64748b !important;
+    margin-bottom: 0.25rem !important;
+    white-space: nowrap !important;
+}
+
+.gw-stat-icon-wrap {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    flex-shrink: 0 !important;
+    border-radius: 10px !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.15rem !important;
+    line-height: 1 !important;
+    color: #0f172a !important;
+}
+
+.gw-stat-value {
+    font-size: 1.85rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.15 !important;
+    margin: 0.4rem 0 !important;
+}
+
+.gw-stat-subtext {
+    font-size: 0.73rem !important;
+    color: #475569 !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 20px !important;
+    padding: 0.2rem 0.55rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+    margin-top: 0.4rem !important;
+}
+
+/* Structured Chart & Table Cards */
+.gw-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    padding: 1.35rem 1.5rem !important;
+    height: 100% !important;
+    transition: box-shadow 0.15s ease !important;
+}
+
+.gw-card:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+}
+
+.gw-card-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 0.85rem !important;
+    margin-bottom: 1.25rem !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.gw-card-header h3,
+.gw-card-header h5,
+.gw-card-header h6 {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+}
+
+.gw-card-header p {
+    color: #64748b !important;
+    font-size: 0.775rem !important;
+    margin-bottom: 0 !important;
+    margin-top: 0.15rem !important;
+}
+
+/* Chart Containers */
+.gw-chart-lg {
+    position: relative !important;
+    height: 280px !important;
+    width: 100% !important;
+}
+
+.gw-chart-donut {
+    position: relative !important;
+    height: 220px !important;
+    width: 100% !important;
+}
+
+/* Gray & White Tables */
+.table-gw {
+    margin-bottom: 0 !important;
+}
+
+.table-gw thead th {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 700 !important;
+    font-size: 0.725rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    padding: 0.65rem 0.85rem !important;
+    white-space: nowrap !important;
+}
+
+.table-gw tbody td {
+    padding: 0.75rem 0.85rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    font-size: 0.825rem !important;
+}
+
+.table-gw tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Badges in Gray & White System */
+.gw-badge-slate {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.725rem !important;
+    padding: 0.28rem 0.65rem !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.gw-badge-gray {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.725rem !important;
+    padding: 0.25rem 0.6rem !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.gw-badge-success {
+    background-color: #ecfdf5 !important;
+    color: #065f46 !important;
+    border: 1px solid #a7f3d0 !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.725rem !important;
+    padding: 0.25rem 0.65rem !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1.2 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Live Telemetry Pulse Dot */
+.gw-pulse-dot {
+    display: inline-block !important;
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 8px !important;
+    min-height: 8px !important;
+    flex-shrink: 0 !important;
+    border-radius: 50% !important;
+    background-color: #10b981 !important;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7) !important;
+    animation: gwPulse 1.8s infinite !important;
+}
+
+@keyframes gwPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Course Ranking Circle */
+.gw-rank {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    flex-shrink: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    line-height: 1 !important;
+}
+
+.gw-rank-1 { background-color: #0f172a !important; color: #ffffff !important; }
+.gw-rank-2 { background-color: #334155 !important; color: #ffffff !important; }
+.gw-rank-3 { background-color: #475569 !important; color: #ffffff !important; }
+.gw-rank-other { background-color: #e2e8f0 !important; color: #334155 !important; }
+
+/* Search Box */
+.gw-search-input {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.8rem !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    outline: none !important;
+    width: 100% !important;
+    max-width: 240px !important;
+}
+
+.gw-search-input:focus {
+    border-color: #0f172a !important;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Section Smooth Scrolling */
+.section-anchor {
+    scroll-margin-top: 4.5rem;
+}
+
+/* Course Rank Item Hover */
+.course-rank-item {
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.course-rank-item:hover {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+/* Quick metric row in academic health card */
+.quick-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}

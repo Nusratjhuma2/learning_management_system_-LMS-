@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from courses.models import Course
+from courses.services.curriculum import is_quiz_accessible_by_module
 from .forms import QuestionForm, QuizForm
 from .models import Choice, Question, Quiz, QuizAttempt, QuizAttemptAnswer
 
@@ -30,6 +31,12 @@ def quiz_detail(request, pk):
     if not is_enrolled and not is_instructor:
         messages.error(request, "You must be enrolled in this course to access this assessment.")
         return redirect('courses:course_detail', slug=course.slug)
+
+    if not is_instructor:
+        quiz_unlocked, lock_reason = is_quiz_accessible_by_module(quiz, request.user)
+        if not quiz_unlocked:
+            messages.warning(request, lock_reason or "This assessment is currently locked.")
+            return redirect('courses:course_detail', slug=course.slug)
 
     past_attempts = QuizAttempt.objects.filter(quiz=quiz, student=request.user).order_by('-started_at')
     attempt_count = past_attempts.count()

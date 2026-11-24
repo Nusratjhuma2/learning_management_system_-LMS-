@@ -63,7 +63,7 @@
                             <span class="badge bg-light text-secondary border me-1">{{ question.get_question_type_display }}</span>
                             <span class="badge bg-light text-secondary border">{{ question.points }} pt{{ question.points|pluralize }}</span>
                         </div>
-                        <form method="post" action="{% url 'quizzes:question_delete' question.pk %}" onsubmit="return confirm('Remove question?');">
+                        <form method="post" action="{% url 'quizzes:question_delete' question.pk %}" data-confirm="Remove question?">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm text-danger border-0 p-0">Delete</button>
                         </form>

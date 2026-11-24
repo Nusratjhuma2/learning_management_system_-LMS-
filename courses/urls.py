@@ -14,4 +14,5 @@ urlpatterns = [
     path('<slug:slug>/toggle-block/', views.toggle_course_block, name='toggle_block'),
     path('<slug:slug>/review/', views.add_course_review, name='add_review'),
     path('<slug:slug>/wishlist/', views.toggle_wishlist, name='toggle_wishlist'),
+    path('<slug:slug>/modules/add/', views.module_create, name='module_create'),
 ]

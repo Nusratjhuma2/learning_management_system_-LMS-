@@ -24,7 +24,7 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3">
         {% for enrollment in enrollments %}
             <div class="col">
-                <div class="card course-card border-0 shadow-sm rounded-3 h-100 overflow-hidden d-flex flex-column" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;" onclick="if (!event.target.closest('a, button')) { window.location.href = '{% url 'courses:course_detail' enrollment.course.slug %}'; }">
+                <div class="card course-card border-0 shadow-sm rounded-3 h-100 overflow-hidden d-flex flex-column" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;" data-card-href="{% url 'courses:course_detail' enrollment.course.slug %}">
                     <div class="position-relative overflow-hidden" style="border-radius: 9px 9px 0 0;">
                         {% if enrollment.course.get_thumbnail_url %}
                             <img src="{{ enrollment.course.get_thumbnail_url }}" class="card-img-top course-thumbnail" alt="{{ enrollment.course.title }}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'thumbnail-fallback\'><span>{{ enrollment.course.category.name|default:'ACADEMIC COURSE'|escapejs }}</span></div>';">

@@ -1,13 +1,28 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Max, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from enrollments.models import Enrollment
+from payments.models import Order
 from .forms import CourseForm
 from .models import Category, Course, CoursePrerequisite, CourseReview, Module, Wishlist
+from .services.curriculum import build_course_curriculum_state
+
+
+def _get_purchased_or_enrolled_course_ids(user):
+    """Return set of course IDs the authenticated user owns via enrollment or completed order."""
+    if not user or not user.is_authenticated:
+        return set()
+    enrolled_ids = set(
+        Enrollment.objects.filter(student=user).values_list('course_id', flat=True)
+    )
+    ordered_ids = set(
+        Order.objects.filter(user=user, status=Order.Status.COMPLETED).values_list('course_id', flat=True)
+    )
+    return enrolled_ids | ordered_ids
 
 
 def course_suggest(request):
@@ -31,20 +46,22 @@ def course_suggest(request):
         .select_related('instructor', 'category')
         .order_by('title')[:8]
     )
-    suggestions = [
-        {
+    owned_course_ids = _get_purchased_or_enrolled_course_ids(request.user)
+    suggestions = []
+    for c in matches:
+        is_enrolled = c.id in owned_course_ids
+        suggestions.append({
             'title': c.title,
             'slug': c.slug,
             'category': c.category.name if c.category else '',
             'level': c.get_level_display(),
             'instructor': c.instructor.get_full_name() or c.instructor.username,
             'thumbnail': c.get_thumbnail_url or '',
-            'price': str(c.effective_price),
-            'is_free': c.is_free,
+            'price': None if is_enrolled else str(c.effective_price),
+            'is_free': False if is_enrolled else c.is_free,
+            'is_enrolled': is_enrolled,
             'url': f'/courses/{c.slug}/',
-        }
-        for c in matches
-    ]
+        })
     return JsonResponse({'suggestions': suggestions})
 
 
@@ -111,9 +128,7 @@ def course_list(request):
         user_wishlist = set(
             Wishlist.objects.filter(student=request.user).values_list('course_id', flat=True)
         )
-        enrolled_course_ids = set(
-            Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
-        )
+        enrolled_course_ids = _get_purchased_or_enrolled_course_ids(request.user)
 
     # Promotional carousel: top courses by rating + enrollment count (up to 6 slides)
     promo_courses = list(
@@ -176,12 +191,16 @@ def course_detail(request, slug):
         rating_breakdown[r] = {'count': count_r, 'percent': percent_r}
 
     is_enrolled = False
+    has_purchased = False
     is_in_wishlist = False
     prereqs_satisfied = True
     unmet_prereqs = []
 
     if request.user.is_authenticated:
         is_enrolled = course.enrollments.filter(student=request.user).exists()
+        has_purchased = is_enrolled or Order.objects.filter(
+            user=request.user, course=course, status=Order.Status.COMPLETED
+        ).exists()
         is_in_wishlist = Wishlist.objects.filter(student=request.user, course=course).exists()
 
         # Check prerequisites status for current user
@@ -192,6 +211,8 @@ def course_detail(request, slug):
                 unmet_prereqs.append(p.required_course)
 
     prerequisites = course.prerequisite_requirements.select_related('required_course').all()
+    curriculum = build_course_curriculum_state(course, request.user)
+    next_module_order = (modules.aggregate(max_order=Max('order'))['max_order'] or 0) + 1
 
     return render(
         request,
@@ -201,7 +222,10 @@ def course_detail(request, slug):
             'modules': modules,
             'standalone_lessons': standalone_lessons,
             'standalone_quizzes': standalone_quizzes,
+            'curriculum': curriculum,
+            'next_module_order': next_module_order,
             'is_enrolled': is_enrolled,
+            'has_purchased': has_purchased,
             'is_in_wishlist': is_in_wishlist,
             'reviews': reviews[:10],
             'reviews_count': reviews_count,
@@ -212,6 +236,43 @@ def course_detail(request, slug):
             'unmet_prereqs': unmet_prereqs,
         },
     )
+
+
+@login_required
+@require_POST
+def module_create(request, slug):
+    """Add a new structured curriculum module to a course (author or admin)."""
+    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
+    if is_admin:
+        course = get_object_or_404(Course, slug=slug)
+    else:
+        course = get_object_or_404(Course, slug=slug, instructor=request.user)
+
+    title = request.POST.get('title', '').strip()
+    description = request.POST.get('description', '').strip()
+    raw_order = request.POST.get('order', '').strip()
+
+    if not title:
+        messages.error(request, "Module title is required.")
+        return redirect('courses:course_detail', slug=course.slug)
+
+    max_order = course.modules.aggregate(max_order=Max('order'))['max_order'] or 0
+    try:
+        order = int(raw_order) if raw_order else (max_order + 1)
+    except (ValueError, TypeError):
+        order = max_order + 1
+
+    if course.modules.filter(order=order).exists():
+        order = max_order + 1
+
+    Module.objects.create(
+        course=course,
+        title=title,
+        description=description,
+        order=max(order, 1),
+    )
+    messages.success(request, f"Module '{title}' added to curriculum.")
+    return redirect('courses:course_detail', slug=course.slug)
 
 
 @login_required

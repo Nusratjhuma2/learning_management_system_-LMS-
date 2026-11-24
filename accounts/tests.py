@@ -106,7 +106,7 @@ class AdminSegregationAndPermissionsTests(TestCase):
         from courses.models import Announcement, Category, Course, Module
         from discussions.models import CourseAnnouncement, DiscussionThread, Notification
         from enrollments.models import Badge, Certificate, Enrollment, StudentBadge
-        from lessons.models import Lesson, LessonNote, LessonProgress
+        from lessons.models import Lesson, LessonNote, LessonProgress, LessonTranscriptSegment
         from payments.models import Coupon, Order, PaymentTransaction
         from quizzes.models import Choice, Question, Quiz, QuizAttempt, QuizAttemptAnswer
 
@@ -116,7 +116,7 @@ class AdminSegregationAndPermissionsTests(TestCase):
             Course, Category, Module, Announcement,
             DiscussionThread, CourseAnnouncement, Notification,
             Enrollment, Certificate, Badge, StudentBadge,
-            Lesson, LessonProgress, LessonNote,
+            Lesson, LessonProgress, LessonNote, LessonTranscriptSegment,
             Coupon, Order, PaymentTransaction,
             Quiz, Question, Choice, QuizAttempt, QuizAttemptAnswer,
         ]

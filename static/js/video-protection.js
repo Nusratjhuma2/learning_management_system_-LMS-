@@ -23,7 +23,9 @@
             lessonId: null,
             minWatchPercent: 85,
             durationSeconds: 0,
-            watermarkText: 'LMS Student'
+            lastPositionSeconds: 0,
+            watermarkText: 'LMS Student',
+            onLevelsLoaded: null
         }, options);
 
         const wrapper = document.getElementById(config.wrapperId);
@@ -221,9 +223,12 @@
                 });
                 hlsInstance.loadSource(config.hlsManifestUrl);
                 hlsInstance.attachMedia(video);
-                hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, function () {
+                hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, function (event, data) {
                     if (config.lastPositionSeconds && config.lastPositionSeconds > 0) {
                         video.currentTime = config.lastPositionSeconds;
+                    }
+                    if (typeof config.onLevelsLoaded === 'function') {
+                        config.onLevelsLoaded(hlsInstance.levels || [], hlsInstance);
                     }
                 });
                 hlsInstance.on(window.Hls.Events.ERROR, function (event, data) {

@@ -31,7 +31,7 @@
                     <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Search questions or keywords...">
                 </div>
                 <div class="col-sm-3">
-                    <select name="filter" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="filter" class="form-select form-select-sm" data-auto-submit="true">
                         <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Threads</option>
                         <option value="unresolved" {% if filter_type == 'unresolved' %}selected{% endif %}>Unresolved</option>
                         <option value="resolved" {% if filter_type == 'resolved' %}selected{% endif %}>Resolved</option>
