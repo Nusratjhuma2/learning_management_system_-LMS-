@@ -169,7 +169,11 @@
                             {% if is_admin %}
                                 <td>
                                     <span class="text-muted small">
-                                        {{ coupon.created_by.get_full_name|default:coupon.created_by.username|default:"System" }}
+                                        {% if coupon.created_by %}
+                                            {{ coupon.created_by.get_full_name|default:coupon.created_by.username }}
+                                        {% else %}
+                                            System
+                                        {% endif %}
                                     </span>
                                 </td>
                             {% endif %}

@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from enrollments.models import Enrollment
 from .forms import CourseForm
 from .models import Category, Course, CoursePrerequisite, CourseReview, Module, Wishlist
 
@@ -105,9 +106,13 @@ def course_list(request):
     categories = Category.objects.annotate(courses_count=Count('courses')).filter(courses_count__gt=0)
 
     user_wishlist = set()
+    enrolled_course_ids = set()
     if request.user.is_authenticated:
         user_wishlist = set(
             Wishlist.objects.filter(student=request.user).values_list('course_id', flat=True)
+        )
+        enrolled_course_ids = set(
+            Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
         )
 
     # Promotional carousel: top courses by rating + enrollment count (up to 6 slides)
@@ -135,6 +140,7 @@ def course_list(request):
             'current_price': price_filter,
             'current_sort': sort,
             'user_wishlist': user_wishlist,
+            'enrolled_course_ids': enrolled_course_ids,
             'promo_courses': promo_courses,
         },
     )

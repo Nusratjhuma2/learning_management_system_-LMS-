@@ -9,7 +9,8 @@
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
     <div>
         <h2 class="h3 mb-1 text-dark fw-bold">Academic Course Catalog</h2>
-        <p class="text-muted small mb-0">Browse university curricula, filter by field or level, and enroll in certified programs.</p>
+        <p class="text-muted small mb-0">Browse university curricula, filter by field or level, and enroll in certified
+            programs.</p>
     </div>
     {% if user.is_authenticated and user.is_instructor %}
     <a href="{% url 'courses:course_create' %}" class="btn btn-primary">
@@ -25,15 +26,14 @@
 <div class="mb-5">
 
     <!-- Carousel wrapper -->
-    <div id="promoCarousel" class="carousel slide promo-carousel-wrap" data-bs-ride="carousel" data-bs-interval="3000">
+    <div id="promoCarousel" class="carousel slide promo-carousel-wrap" data-bs-ride="carousel" data-bs-interval="5000">
 
         <!-- Slide indicators (dots) -->
         <div class="carousel-indicators" style="bottom:-30px;">
             {% for c in promo_courses %}
             <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="{{ forloop.counter0 }}"
-                    class="{% if forloop.first %}active{% endif %}"
-                    aria-label="Slide {{ forloop.counter }}"
-                    style="width:9px;height:9px;border-radius:50%;background:{% if forloop.first %}#0f172a{% else %}#cbd5e1{% endif %};border:none;padding:0;transition:background 0.3s;"></button>
+                class="{% if forloop.first %}active{% endif %}" aria-label="Slide {{ forloop.counter }}"
+                style="width:9px;height:9px;border-radius:50%;background:{% if forloop.first %}#0f172a{% else %}#cbd5e1{% endif %};border:none;padding:0;transition:background 0.3s;"></button>
             {% endfor %}
         </div>
 
@@ -47,36 +47,42 @@
                     border-radius:16px; box-shadow:0 4px 20px rgba(15,23,42,0.07);
                 ">
                     <!-- LEFT: Thumbnail with overlay details -->
-                    <div class="promo-thumb-col flex-shrink-0 position-relative" style="width:300px;min-width:220px;overflow:hidden;border-radius:16px 0 0 16px;">
+                    <div class="promo-thumb-col flex-shrink-0 position-relative"
+                        style="width:300px;min-width:220px;overflow:hidden;border-radius:16px 0 0 16px;">
                         {% if course.get_thumbnail_url %}
-                        <img src="{{ course.get_thumbnail_url }}"
-                             alt="{{ course.title }}"
-                             referrerpolicy="no-referrer"
-                             loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
-                             onerror="this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#1e293b,#334155)';"
-                             style="width:100%;height:100%;object-fit:cover;min-height:220px;">
+                        <img src="{{ course.get_thumbnail_url }}" alt="{{ course.title }}" referrerpolicy="no-referrer"
+                            loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                            onerror="this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#1e293b,#334155)';"
+                            style="width:100%;height:100%;object-fit:cover;min-height:220px;">
                         {% else %}
-                        <div style="width:100%;min-height:220px;background:linear-gradient(135deg,#1e293b,#334155);"></div>
+                        <div style="width:100%;min-height:220px;background:linear-gradient(135deg,#1e293b,#334155);">
+                        </div>
                         {% endif %}
                         <!-- Dark gradient overlay on image -->
-                        <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 100%);"></div>
+                        <div
+                            style="position:absolute;inset:0;background:linear-gradient(to right, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 100%);">
+                        </div>
                         <!-- Slide index badge -->
                         <div style="position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;">
-                            <span style="background:rgba(15,23,42,0.85);color:#fff;font-size:0.6rem;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.06em;backdrop-filter:blur(4px);">
+                            <span
+                                style="background:rgba(15,23,42,0.85);color:#fff;font-size:0.6rem;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.06em;backdrop-filter:blur(4px);">
                                 🏆 FEATURED
                             </span>
                             {% if course.has_discount %}
-                            <span style="background:#dc2626;color:#fff;font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;">
+                            <span
+                                style="background:#dc2626;color:#fff;font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;">
                                 💰 {{ course.savings_amount|floatformat:0 }}% OFF
                             </span>
                             {% elif course.is_free %}
-                            <span style="background:#16a34a;color:#fff;font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;">
+                            <span
+                                style="background:#16a34a;color:#fff;font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;">
                                 🎁 FREE
                             </span>
                             {% endif %}
                         </div>
                         <!-- Slide number bottom-left -->
-                        <div style="position:absolute;bottom:10px;left:12px;color:rgba(255,255,255,0.7);font-size:0.65rem;font-weight:600;">
+                        <div
+                            style="position:absolute;bottom:10px;left:12px;color:rgba(255,255,255,0.7);font-size:0.65rem;font-weight:600;">
                             {{ forloop.counter }} / {{ promo_courses|length }}
                         </div>
                     </div>
@@ -86,20 +92,25 @@
 
                         <!-- Tags row -->
                         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                            <span class="badge bg-light text-dark border" style="font-size:0.62rem;font-weight:600;letter-spacing:0.03em;">
+                            <span class="badge bg-light text-dark border"
+                                style="font-size:0.62rem;font-weight:600;letter-spacing:0.03em;">
                                 {{ course.category.name|default:"General" }}
                             </span>
-                            <span class="badge" style="background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-size:0.62rem;">
+                            <span class="badge"
+                                style="background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-size:0.62rem;">
                                 {{ course.get_level_display }}
                             </span>
-                            <span class="badge" style="background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-size:0.62rem;">
+                            <span class="badge"
+                                style="background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-size:0.62rem;">
                                 {{ course.language|default:"English" }}
                             </span>
                         </div>
 
                         <!-- Title -->
-                        <h4 class="fw-bold text-dark mb-1" style="font-size:1.08rem;line-height:1.3;letter-spacing:-0.015em;">
-                            <a href="{% url 'courses:course_detail' course.slug %}" class="text-dark text-decoration-none">
+                        <h4 class="fw-bold text-dark mb-1"
+                            style="font-size:1.08rem;line-height:1.3;letter-spacing:-0.015em;">
+                            <a href="{% url 'courses:course_detail' course.slug %}"
+                                class="text-dark text-decoration-none">
                                 {{ course.title }}
                             </a>
                         </h4>
@@ -136,7 +147,8 @@
                         <div class="d-flex flex-wrap gap-1 mb-3">
                             {% for item in course.what_you_will_learn|truncatewords:12 %}
                             {% endfor %}
-                            <span style="font-size:0.72rem;color:#334155;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:2px 8px;">
+                            <span
+                                style="font-size:0.72rem;color:#334155;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:2px 8px;">
                                 ✓ {{ course.what_you_will_learn|truncatewords:8 }}
                             </span>
                         </div>
@@ -147,7 +159,9 @@
                             <!-- Price row -->
                             <div class="d-flex align-items-center gap-3 flex-wrap">
                                 <div class="d-flex align-items-baseline gap-2">
-                                    {% if course.is_free %}
+                                    {% if course.id in enrolled_course_ids %}
+                                    <span class="badge bg-success text-white px-2.5 py-1.5" style="font-size:0.85rem;font-weight:700;">✓ Enrolled</span>
+                                    {% elif course.is_free %}
                                     <span class="fw-bold" style="font-size:1.3rem;color:#16a34a;">FREE</span>
                                     {% elif course.has_discount %}
                                     <span class="fw-bold text-dark" style="font-size:1.3rem;">${{ course.discount_price }}</span>
@@ -160,19 +174,24 @@
 
                                 <!-- CTA Buttons -->
                                 <div class="d-flex gap-2 flex-wrap">
-                                    {% if course.is_free %}
+                                    {% if course.id in enrolled_course_ids %}
+                                    <a href="{% url 'courses:course_detail' course.slug %}"
+                                        class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                        Resume Learning &rarr;
+                                    </a>
+                                    {% elif course.is_free %}
                                     <a href="{% url 'enrollments:enroll' course.slug %}"
-                                       class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                        class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
                                         🎁 Enroll Free
                                     </a>
                                     {% else %}
                                     <a href="{% url 'payments:checkout' course.slug %}"
-                                       class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                        class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
                                         Purchase &rarr;
                                     </a>
                                     {% endif %}
                                     <a href="{% url 'courses:course_detail' course.slug %}"
-                                       class="btn btn-secondary btn-sm px-3" style="font-size:0.82rem;">
+                                        class="btn btn-secondary btn-sm px-3" style="font-size:0.82rem;">
                                         View Details
                                     </a>
                                 </div>
@@ -186,16 +205,16 @@
         </div><!-- /carousel-inner -->
 
         <!-- Prev / Next controls -->
-        <button class="carousel-control-prev promo-ctrl-btn" type="button"
-                data-bs-target="#promoCarousel" data-bs-slide="prev"
-                style="left:-18px;width:36px;height:36px;background:#0f172a;border-radius:50%;border:none;top:50%;transform:translateY(-50%);position:absolute;display:flex;align-items:center;justify-content:center;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+        <button class="carousel-control-prev promo-ctrl-btn" type="button" data-bs-target="#promoCarousel"
+            data-bs-slide="prev"
+            style="left:-18px;width:36px;height:36px;background:#0f172a;border-radius:50%;border:none;top:50%;transform:translateY(-50%);position:absolute;display:flex;align-items:center;justify-content:center;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
             <svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24">
                 <polyline points="15,18 9,12 15,6"></polyline>
             </svg>
         </button>
-        <button class="carousel-control-next promo-ctrl-btn" type="button"
-                data-bs-target="#promoCarousel" data-bs-slide="next"
-                style="right:-18px;width:36px;height:36px;background:#0f172a;border-radius:50%;border:none;top:50%;transform:translateY(-50%);position:absolute;display:flex;align-items:center;justify-content:center;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+        <button class="carousel-control-next promo-ctrl-btn" type="button" data-bs-target="#promoCarousel"
+            data-bs-slide="next"
+            style="right:-18px;width:36px;height:36px;background:#0f172a;border-radius:50%;border:none;top:50%;transform:translateY(-50%);position:absolute;display:flex;align-items:center;justify-content:center;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
             <svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24">
                 <polyline points="9,18 15,12 9,6"></polyline>
             </svg>
@@ -203,15 +222,15 @@
 
     </div><!-- /carousel -->
 
-    <!-- Progress bar: 3-second auto-advance indicator -->
+    <!-- Progress bar: auto-advance indicator -->
     <div class="mt-4" style="height:3px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
-        <div id="promoProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#0f172a,#334155);transition:width 3s linear;border-radius:3px;"></div>
+        <div id="promoProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#0f172a,#334155);border-radius:3px;"></div>
     </div>
 
     <!-- Pause indicator -->
     <div class="d-flex align-items-center justify-content-between mt-2" style="font-size:0.68rem;color:#94a3b8;">
         <span id="promoSlideLabel">Slide 1 of {{ promo_courses|length }}</span>
-        <span id="promoPauseLabel">▶ Auto-advancing every 3s — hover to pause</span>
+        <span id="promoPauseLabel">▶ Auto-advancing every 5s — hover to pause</span>
     </div>
 
 </div><!-- /promo wrapper -->
@@ -220,11 +239,8 @@
 .promo-carousel-wrap { position: relative; }
 .promo-ctrl-btn:focus { outline: none; box-shadow: none; }
 .promo-ctrl-btn:hover { background: #334155 !important; }
-
-/* Pause on hover */
 .promo-carousel-wrap:hover #promoProgress { animation-play-state: paused; }
 
-/* Responsive thumbnail col */
 @media (max-width: 767px) {
     .promo-thumb-col { width: 120px !important; min-width: 100px !important; }
     .promo-slide { min-height: 160px !important; }
@@ -236,22 +252,40 @@
 
 <script>
 (function() {
+    // ============================================================
+    // SLIDE DURATION (Change this number to adjust speed in seconds)
+    // ============================================================
+    var SLIDE_SECONDS = 5; // e.g. 3, 5, 6
+    var SLIDE_INTERVAL_MS = SLIDE_SECONDS * 1000;
+
     var carouselEl = document.getElementById('promoCarousel');
     var progress   = document.getElementById('promoProgress');
     var slideLabel = document.getElementById('promoSlideLabel');
     var pauseLabel = document.getElementById('promoPauseLabel');
-    var total = {{ promo_courses|length }};
+    var total      = {{ promo_courses|length }};
 
     if (!carouselEl) return;
 
-    var bsCarousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl, { interval: 3000, ride: 'carousel' });
+    // Apply interval to carousel
+    carouselEl.setAttribute('data-bs-interval', SLIDE_INTERVAL_MS);
+    var bsCarousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl, {
+        interval: SLIDE_INTERVAL_MS,
+        ride: 'carousel'
+    });
+
+    function setAdvancingText() {
+        if (pauseLabel) {
+            pauseLabel.innerHTML = '▶ Auto-advancing every ' + SLIDE_SECONDS + 's — hover to pause';
+        }
+    }
 
     function resetProgress() {
+        if (!progress) return;
         progress.style.transition = 'none';
         progress.style.width = '0%';
         requestAnimationFrame(function() {
             requestAnimationFrame(function() {
-                progress.style.transition = 'width 3s linear';
+                progress.style.transition = 'width ' + SLIDE_SECONDS + 's linear';
                 progress.style.width = '100%';
             });
         });
@@ -261,7 +295,8 @@
         if (slideLabel) slideLabel.textContent = 'Slide ' + (idx + 1) + ' of ' + total;
     }
 
-    // Start progress animation
+    // Initialize labels and progress bar
+    setAdvancingText();
     resetProgress();
 
     carouselEl.addEventListener('slide.bs.carousel', function(e) {
@@ -269,18 +304,18 @@
         resetProgress();
     });
 
-    // Pause on hover
+    // Pause on hover, resume on mouse leave
     var wrap = carouselEl.closest('.promo-carousel-wrap') || carouselEl;
     if (wrap) {
         wrap.addEventListener('mouseenter', function() {
             bsCarousel.pause();
-            progress.style.animationPlayState = 'paused';
+            if (progress) progress.style.animationPlayState = 'paused';
             if (pauseLabel) pauseLabel.innerHTML = '⏸ Paused — move cursor away to resume';
         });
         wrap.addEventListener('mouseleave', function() {
             bsCarousel.cycle();
             resetProgress();
-            if (pauseLabel) pauseLabel.innerHTML = '▶ Auto-advancing every 3s — hover to pause';
+            setAdvancingText();
         });
     }
 })();
@@ -294,7 +329,11 @@
     <div class="compact-filter-bar">
         <!-- Results count & query badge -->
         <div class="filter-results-info">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                class="text-muted">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
             <span class="filter-query-text">"{{ search_query|default:'All' }}"</span>
             <span class="filter-count-badge">{{ courses.count }} course{{ courses.count|pluralize }}</span>
         </div>
@@ -303,37 +342,47 @@
 
         <!-- Filter Selects: Compact and minimal space in 1 row -->
         <div class="filter-selects-wrap">
-            <select name="category" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()" title="Filter by Category">
+            <select name="category" class="form-select form-select-sm filter-compact-select"
+                onchange="this.form.submit()" title="Filter by Category">
                 <option value="">All Categories</option>
                 {% for cat in categories %}
-                <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}
+                </option>
                 {% endfor %}
             </select>
 
-            <select name="level" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()" title="Filter by Level">
+            <select name="level" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()"
+                title="Filter by Level">
                 <option value="">All Levels</option>
                 <option value="beginner" {% if current_level == 'beginner' %}selected{% endif %}>Beginner</option>
-                <option value="intermediate" {% if current_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                <option value="intermediate" {% if current_level == 'intermediate' %}selected{% endif %}>Intermediate
+                </option>
                 <option value="advanced" {% if current_level == 'advanced' %}selected{% endif %}>Advanced</option>
             </select>
 
-            <select name="price" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()" title="Filter by Pricing">
+            <select name="price" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()"
+                title="Filter by Pricing">
                 <option value="">All Pricing</option>
                 <option value="free" {% if current_price == 'free' %}selected{% endif %}>Free</option>
                 <option value="paid" {% if current_price == 'paid' %}selected{% endif %}>Paid</option>
             </select>
 
-            <select name="sort" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()" title="Sort By">
+            <select name="sort" class="form-select form-select-sm filter-compact-select" onchange="this.form.submit()"
+                title="Sort By">
                 <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
                 <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>Top Rated</option>
-                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low → High</option>
-                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low → High
+                </option>
+                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High → Low
+                </option>
             </select>
         </div>
 
         <!-- Compact Standard Filter Button -->
         <button type="submit" class="btn-compact-filter" title="Apply filter">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
             <span>Filter</span>
         </button>
 
@@ -345,116 +394,127 @@
 </form>
 
 <style>
-/* Compact Minimal Filter Bar */
-.compact-filter-bar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    padding: 0.35rem 0.65rem;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-.filter-results-info {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: #334155;
-    white-space: nowrap;
-}
-.filter-query-text {
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #0f172a;
-}
-.filter-count-badge {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 12px;
-}
-.filter-divider {
-    width: 1px;
-    height: 18px;
-    background: #e2e8f0;
-    margin: 0 2px;
-    flex-shrink: 0;
-}
-.filter-selects-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    flex-wrap: wrap;
-    flex: 1;
-}
-.filter-compact-select {
-    height: 30px !important;
-    font-size: 0.76rem !important;
-    padding: 2px 24px 2px 8px !important;
-    border-radius: 6px !important;
-    border: 1px solid #e2e8f0 !important;
-    background-color: #f8fafc !important;
-    color: #334155 !important;
-    width: auto !important;
-    min-width: 105px;
-    flex: 1 1 auto;
-}
-.filter-compact-select:focus {
-    border-color: #0f172a !important;
-    background-color: #ffffff !important;
-    box-shadow: none !important;
-}
-.btn-compact-filter {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 30px;
-    padding: 0 10px;
-    background-color: #0f172a;
-    color: #ffffff;
-    font-size: 0.76rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
-}
-.btn-compact-filter:hover {
-    background-color: #1e293b;
-    transform: translateY(-1px);
-}
-.btn-compact-clear {
-    display: inline-flex;
-    align-items: center;
-    height: 30px;
-    padding: 0 8px;
-    background: #f8fafc;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.74rem;
-    font-weight: 600;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
-}
-.btn-compact-clear:hover {
-    background: #fee2e2;
-    color: #dc2626;
-    border-color: #fca5a5;
-}
+    /* Compact Minimal Filter Bar */
+    .compact-filter-bar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        padding: 0.35rem 0.65rem;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .filter-results-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: #334155;
+        white-space: nowrap;
+    }
+
+    .filter-query-text {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #0f172a;
+    }
+
+    .filter-count-badge {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 12px;
+    }
+
+    .filter-divider {
+        width: 1px;
+        height: 18px;
+        background: #e2e8f0;
+        margin: 0 2px;
+        flex-shrink: 0;
+    }
+
+    .filter-selects-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+        flex: 1;
+    }
+
+    .filter-compact-select {
+        height: 30px !important;
+        font-size: 0.76rem !important;
+        padding: 2px 24px 2px 8px !important;
+        border-radius: 6px !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        color: #334155 !important;
+        width: auto !important;
+        min-width: 105px;
+        flex: 1 1 auto;
+    }
+
+    .filter-compact-select:focus {
+        border-color: #0f172a !important;
+        background-color: #ffffff !important;
+        box-shadow: none !important;
+    }
+
+    .btn-compact-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 30px;
+        padding: 0 10px;
+        background-color: #0f172a;
+        color: #ffffff;
+        font-size: 0.76rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .btn-compact-filter:hover {
+        background-color: #1e293b;
+        transform: translateY(-1px);
+    }
+
+    .btn-compact-clear {
+        display: inline-flex;
+        align-items: center;
+        height: 30px;
+        padding: 0 8px;
+        background: #f8fafc;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .btn-compact-clear:hover {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #fca5a5;
+    }
 </style>
 {% endif %}
 
@@ -472,18 +532,19 @@
     {% for course in courses %}
     <div class="col">
         <div class="card course-card h-100 position-relative d-flex flex-column border-0 shadow-sm"
-             style="cursor:pointer;border:1px solid #e2e8f0!important;border-radius:10px;"
-             onclick="if(!event.target.closest('a,button')){window.location.href='{% url 'courses:course_detail' course.slug %}';}">
+            style="cursor:pointer;border:1px solid #e2e8f0!important;border-radius:10px;"
+            onclick="if(!event.target.closest('a,button')){window.location.href='{% url 'courses:course_detail' course.slug %}';}">
             <div class="position-relative overflow-hidden" style="border-radius:9px 9px 0 0;">
                 {% if course.get_thumbnail_url %}
                 <img src="{{ course.get_thumbnail_url }}" class="card-img-top course-thumbnail" alt="{{ course.title }}"
-                     loading="lazy" referrerpolicy="no-referrer"
-                     onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\'thumbnail-fallback\'><span>{{ course.category.name|default:'COURSE'|escapejs }}</span></div>';">
+                    loading="lazy" referrerpolicy="no-referrer"
+                    onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\'thumbnail-fallback\'><span>{{ course.category.name|default:'COURSE'|escapejs }}</span></div>';">
                 {% else %}
                 <div class="thumbnail-fallback"><span>{{ course.category.name|default:"COURSE" }}</span></div>
                 {% endif %}
                 <div class="position-absolute top-0 end-0 m-1">
-                    <span class="badge border shadow-sm" style="font-size:0.58rem;backdrop-filter:blur(4px);background-color:rgba(255,255,255,0.92)!important;color:#334155!important;">
+                    <span class="badge border shadow-sm"
+                        style="font-size:0.58rem;backdrop-filter:blur(4px);background-color:rgba(255,255,255,0.92)!important;color:#334155!important;">
                         {{ course.get_level_display }}
                     </span>
                 </div>
@@ -491,14 +552,17 @@
 
             <div class="card-body d-flex flex-column" style="padding:0.65rem 0.75rem!important;">
                 <div class="d-flex align-items-center justify-content-between mb-1 gap-1">
-                    <span class="badge bg-light text-dark border text-truncate" style="font-size:0.58rem;max-width:105px;font-weight:600;">
+                    <span class="badge bg-light text-dark border text-truncate"
+                        style="font-size:0.58rem;max-width:105px;font-weight:600;">
                         {{ course.category.name|default:"General" }}
                     </span>
-                    {% if course.is_blocked %}<span class="badge bg-danger text-white" style="font-size:0.56rem;">&#128274;</span>{% endif %}
+                    {% if course.is_blocked %}<span class="badge bg-danger text-white"
+                        style="font-size:0.56rem;">&#128274;</span>{% endif %}
                 </div>
 
                 <h6 class="card-title fw-bold text-dark mb-1 course-title-clamped" title="{{ course.title }}">
-                    <a href="{% url 'courses:course_detail' course.slug %}" class="text-dark text-decoration-none stretched-link">{{ course.title }}</a>
+                    <a href="{% url 'courses:course_detail' course.slug %}"
+                        class="text-dark text-decoration-none stretched-link">{{ course.title }}</a>
                 </h6>
 
                 <p class="text-muted mb-1 text-truncate" style="font-size:0.68rem;">
@@ -510,9 +574,12 @@
                     <span class="text-muted" style="font-size:0.63rem;">({{ course.reviews_count }})</span>
                 </div>
 
-                <div class="pt-2 border-top mt-auto d-flex align-items-center justify-content-between position-relative" style="z-index:2;border-color:#f1f5f9!important;">
+                <div class="pt-2 border-top mt-auto d-flex align-items-center justify-content-between position-relative"
+                    style="z-index:2;border-color:#f1f5f9!important;">
                     <div>
-                        {% if course.is_free %}
+                        {% if course.id in enrolled_course_ids %}
+                        <span class="badge bg-success text-white fw-bold" style="font-size:0.65rem;">✓ Enrolled</span>
+                        {% elif course.is_free %}
                         <span class="badge bg-light text-dark border fw-bold" style="font-size:0.65rem;">FREE</span>
                         {% elif course.has_discount %}
                         <div class="d-flex flex-column lh-1">
@@ -520,17 +587,26 @@
                                 <span class="fw-bold text-dark" style="font-size:0.78rem;">${{ course.discount_price }}</span>
                                 <span class="text-muted text-decoration-line-through" style="font-size:0.62rem;">${{ course.price }}</span>
                             </div>
-                            <span class="badge bg-dark text-white mt-1" style="font-size:0.5rem;width:fit-content;padding:1px 3px;">Save ${{ course.savings_amount }}</span>
+                            <span class="badge bg-dark text-white mt-1"
+                                style="font-size:0.5rem;width:fit-content;padding:1px 3px;">Save ${{ course.savings_amount }}</span>
                         </div>
                         {% else %}
                         <span class="fw-bold text-dark" style="font-size:0.78rem;">${{ course.price }}</span>
                         {% endif %}
                     </div>
                     <div>
-                        {% if course.is_free %}
-                        <a href="{% url 'enrollments:enroll' course.slug %}" class="btn btn-primary btn-sm py-1 px-2 text-nowrap" style="font-size:0.68rem;border-radius:6px;">Enroll</a>
+                        {% if course.id in enrolled_course_ids %}
+                        <a href="{% url 'courses:course_detail' course.slug %}"
+                            class="btn btn-outline-dark btn-sm py-1 px-2 text-nowrap"
+                            style="font-size:0.68rem;border-radius:6px;">Learn &rarr;</a>
+                        {% elif course.is_free %}
+                        <a href="{% url 'enrollments:enroll' course.slug %}"
+                            class="btn btn-primary btn-sm py-1 px-2 text-nowrap"
+                            style="font-size:0.68rem;border-radius:6px;">Enroll</a>
                         {% else %}
-                        <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-primary btn-sm py-1 px-2 text-nowrap" style="font-size:0.68rem;border-radius:6px;">Purchase &rarr;</a>
+                        <a href="{% url 'payments:checkout' course.slug %}"
+                            class="btn btn-primary btn-sm py-1 px-2 text-nowrap"
+                            style="font-size:0.68rem;border-radius:6px;">Purchase &rarr;</a>
                         {% endif %}
                     </div>
                 </div>

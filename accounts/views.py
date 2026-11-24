@@ -150,6 +150,12 @@ def instructor_detail(request, username):
         .aggregate(avg=Avg('rating'))['avg'] or 5.0
     )
 
+    enrolled_course_ids = set()
+    if request.user.is_authenticated:
+        enrolled_course_ids = set(
+            Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
+        )
+
     return render(request, 'accounts/instructor_detail.html', {
         'instructor': instructor,
         'courses': courses,
@@ -158,4 +164,5 @@ def instructor_detail(request, username):
         'total_lessons': total_lessons,
         'avg_rating': round(avg_rating, 1),
         'reviews': reviews,
+        'enrolled_course_ids': enrolled_course_ids,
     })

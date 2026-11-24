@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,18 +13,30 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261121">
     <style>
         /* ===== SIDEBAR LAYOUT SYSTEM ===== */
-        *, *::before, *::after { box-sizing: border-box; }
-        body { overflow-x: hidden; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
 
         :root {
             --sidebar-w: 220px;
             --sidebar-collapsed-w: 0px;
             --topbar-h: 54px;
-            --sidebar-bg: #0f172a;
+            --sidebar-bg: #070d28;
             --sidebar-transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .lms-wrapper { display: flex; min-height: 100vh; }
+        .lms-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
 
         /* ===== LEFT SIDEBAR ===== */
         .lms-sidebar {
@@ -33,7 +46,8 @@
             display: flex;
             flex-direction: column;
             position: fixed;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             height: 100vh;
             z-index: 1050;
             transition: transform var(--sidebar-transition), width var(--sidebar-transition), min-width var(--sidebar-transition);
@@ -52,21 +66,30 @@
             align-items: center;
             gap: 0.6rem;
             padding: 1rem 1rem 0.9rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             text-decoration: none;
             flex-shrink: 0;
         }
+
         .sidebar-brand .brand-mark {
-            width: 32px; height: 32px;
-            background-color: #fff; color: #0f172a;
+            width: 32px;
+            height: 32px;
+            background-color: #fff;
+            color: #0f172a;
             border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 800;
             flex-shrink: 0;
         }
+
         .sidebar-brand .brand-name {
-            color: #fff; font-weight: 700;
-            font-size: 1rem; letter-spacing: -0.02em;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
             white-space: nowrap;
         }
 
@@ -78,8 +101,9 @@
             flex-direction: column;
             gap: 1px;
         }
+
         .nav-section-label {
-            color: rgba(255,255,255,0.3);
+            color: rgba(255, 255, 255, 0.3);
             font-size: 0.58rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -87,8 +111,9 @@
             padding: 0.75rem 0.6rem 0.3rem;
             white-space: nowrap;
         }
+
         .sidebar-nav .nav-link {
-            color: rgba(255,255,255,0.68) !important;
+            color: rgba(255, 255, 255, 0.68) !important;
             font-size: 0.83rem;
             font-weight: 500;
             padding: 0.48rem 0.7rem !important;
@@ -99,50 +124,68 @@
             transition: background 0.15s, color 0.15s;
             white-space: nowrap;
         }
+
         .sidebar-nav .nav-link:hover,
         .sidebar-nav .nav-link.active {
-            background-color: rgba(255,255,255,0.1) !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
             color: #fff !important;
         }
-        .sidebar-nav .nav-link .nav-icon { width: 18px; text-align: center; flex-shrink: 0; }
+
+        .sidebar-nav .nav-link .nav-icon {
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
 
         /* Instructor dropdown inside sidebar */
         .sidebar-nav .dropdown-menu {
             background-color: #1e293b;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             margin-top: 2px !important;
             min-width: 190px;
         }
+
         .sidebar-nav .dropdown-menu .dropdown-item {
-            color: rgba(255,255,255,0.72);
+            color: rgba(255, 255, 255, 0.72);
             font-size: 0.78rem;
             padding: 0.38rem 0.75rem;
         }
+
         .sidebar-nav .dropdown-menu .dropdown-item:hover {
-            background-color: rgba(255,255,255,0.08); color: #fff;
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #fff;
         }
+
         .sidebar-nav .dropdown-menu .dropdown-header {
-            color: rgba(255,255,255,0.3); font-size: 0.58rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.58rem;
         }
-        .sidebar-nav .dropdown-menu hr { border-color: rgba(255,255,255,0.1); }
+
+        .sidebar-nav .dropdown-menu hr {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
 
         /* Sidebar Footer */
         .sidebar-footer {
             padding: 0.8rem 0.7rem;
-            border-top: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
         }
 
         /* ===== BACKDROP ===== */
         .sidebar-backdrop {
             display: none;
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.45);
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
             z-index: 1045;
             transition: opacity 0.25s;
         }
-        .sidebar-backdrop.show { display: block; }
+
+        .sidebar-backdrop.show {
+            display: block;
+        }
 
         /* ===== RIGHT MAIN AREA ===== */
         .lms-main {
@@ -153,13 +196,16 @@
             min-height: 100vh;
             transition: margin-left var(--sidebar-transition);
         }
+
         .lms-main.sidebar-collapsed {
             margin-left: 0;
         }
 
         /* ===== TOP BAR ===== */
         .lms-topbar {
-            position: sticky; top: 0; z-index: 1030;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
             height: var(--topbar-h);
             background-color: #fff;
             border-bottom: 1px solid #e2e8f0;
@@ -167,44 +213,67 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0 1.25rem;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
             flex-shrink: 0;
         }
 
         /* Hamburger toggle button */
         .sidebar-toggle-btn {
-            background: none; border: none; cursor: pointer;
+            background: none;
+            border: none;
+            cursor: pointer;
             padding: 0.35rem;
             border-radius: 6px;
             color: #334155;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
             transition: background 0.15s;
         }
-        .sidebar-toggle-btn:hover { background: #f1f5f9; }
-        .sidebar-toggle-btn svg { display: block; }
+
+        .sidebar-toggle-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .sidebar-toggle-btn svg {
+            display: block;
+        }
 
         /* Home button (left of search bar) */
         .topbar-home-btn {
-            background: none; border: none; cursor: pointer;
+            background: none;
+            border: none;
+            cursor: pointer;
             padding: 0.35rem;
             border-radius: 6px;
             color: #334155;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
             width: 34px;
             height: 34px;
         }
+
         .topbar-home-btn:hover {
             background: #f1f5f9;
             color: #0f172a;
         }
-        .topbar-home-btn svg { display: block; }
+
+        .topbar-home-btn svg {
+            display: block;
+        }
 
         /* Search bar */
-        .topbar-search { flex: 1; max-width: 480px; position: relative; }
+        .topbar-search {
+            flex: 1;
+            max-width: 480px;
+            position: relative;
+        }
+
         .topbar-search .input-group {
             border-radius: 20px;
             overflow: visible;
@@ -212,34 +281,55 @@
             border: 1px solid #e2e8f0;
             transition: all 0.2s ease;
         }
+
         .topbar-search .input-group:focus-within {
             background: #ffffff;
             border-color: #0f172a;
             box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
         }
+
         .topbar-search .input-group-text {
-            background: transparent; border: none;
-            color: #94a3b8; padding: 0 0.5rem 0 0.85rem;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0 0.5rem 0 0.85rem;
         }
+
         .topbar-search input.form-control {
-            background: transparent; border: none;
-            font-size: 0.85rem; height: 36px;
-            padding-left: 0; padding-right: 0.25rem;
+            background: transparent;
+            border: none;
+            font-size: 0.85rem;
+            height: 36px;
+            padding-left: 0;
+            padding-right: 0.25rem;
         }
+
         .topbar-search input.form-control:focus {
-            background: transparent; border: none; box-shadow: none;
+            background: transparent;
+            border: none;
+            box-shadow: none;
         }
+
         .topbar-search .btn-search {
-            background-color: #0f172a; color: #fff;
-            border: none; padding: 0 1rem;
-            font-size: 0.82rem; font-weight: 600;
+            background-color: #0f172a;
+            color: #fff;
+            border: none;
+            padding: 0 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
             border-radius: 0 19px 19px 0;
-            cursor: pointer; white-space: nowrap;
+            cursor: pointer;
+            white-space: nowrap;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex; align-items: center; justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             height: 36px;
         }
-        .topbar-search .btn-search:hover { background-color: #1e293b; }
+
+        .topbar-search .btn-search:hover {
+            background-color: #1e293b;
+        }
 
         /* Compact & floating search button state */
         .btn-search.btn-search-compact-floating,
@@ -252,6 +342,7 @@
             box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22) !important;
             transform: translateY(-1px);
         }
+
         .btn-search.btn-search-compact-floating:hover,
         .btn-search.is-compact-floating:hover {
             transform: translateY(-2px) !important;
@@ -276,6 +367,7 @@
             list-style: none;
             margin: 0;
         }
+
         .search-suggestions-dropdown .sg-header {
             padding: 6px 14px 4px;
             font-size: 0.65rem;
@@ -284,6 +376,7 @@
             letter-spacing: 0.05em;
             text-transform: uppercase;
         }
+
         .search-suggestions-dropdown .sg-item {
             display: flex;
             align-items: center;
@@ -295,13 +388,16 @@
             color: inherit;
             border-bottom: 1px solid #f8fafc;
         }
+
         .search-suggestions-dropdown .sg-item:last-child {
             border-bottom: none;
         }
+
         .search-suggestions-dropdown .sg-item:hover,
         .search-suggestions-dropdown .sg-item.sg-active {
             background-color: #f8fafc;
         }
+
         .search-suggestions-dropdown .sg-thumb {
             width: 40px;
             height: 40px;
@@ -311,6 +407,7 @@
             flex-shrink: 0;
             border: 1px solid #e2e8f0;
         }
+
         .search-suggestions-dropdown .sg-thumb-fallback {
             width: 40px;
             height: 40px;
@@ -328,10 +425,12 @@
             text-align: center;
             padding: 2px;
         }
+
         .search-suggestions-dropdown .sg-details {
             flex: 1;
             min-width: 0;
         }
+
         .search-suggestions-dropdown .sg-title {
             font-size: 0.84rem;
             font-weight: 600;
@@ -341,12 +440,14 @@
             text-overflow: ellipsis;
             line-height: 1.3;
         }
+
         .search-suggestions-dropdown .sg-title mark {
             background: #fef08a;
             color: #0f172a;
             padding: 0 1px;
             border-radius: 2px;
         }
+
         .search-suggestions-dropdown .sg-meta {
             font-size: 0.72rem;
             color: #64748b;
@@ -358,6 +459,7 @@
             align-items: center;
             gap: 6px;
         }
+
         .search-suggestions-dropdown .sg-meta-badge {
             font-size: 0.62rem;
             padding: 1px 6px;
@@ -366,6 +468,7 @@
             color: #334155;
             font-weight: 600;
         }
+
         .search-suggestions-dropdown .sg-price {
             font-size: 0.82rem;
             font-weight: 700;
@@ -373,10 +476,12 @@
             flex-shrink: 0;
             text-align: right;
         }
+
         .search-suggestions-dropdown .sg-price-free {
             color: #16a34a;
             font-weight: 700;
         }
+
         .search-suggestions-dropdown .sg-footer {
             padding: 8px 14px 6px;
             border-top: 1px solid #e2e8f0;
@@ -388,14 +493,17 @@
             background: #fafafa;
             border-radius: 0 0 12px 12px;
         }
+
         .search-suggestions-dropdown .sg-footer a {
             color: #0f172a;
             font-weight: 600;
             text-decoration: none;
         }
+
         .search-suggestions-dropdown .sg-footer a:hover {
             text-decoration: underline;
         }
+
         .search-suggestions-dropdown .sg-empty {
             padding: 18px 14px;
             text-align: center;
@@ -424,31 +532,57 @@
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             animation: cfsFadeUp 0.3s ease;
         }
+
         @keyframes cfsFadeUp {
-            from { opacity: 0; transform: translateY(12px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
+
         .compact-floating-search-chip:hover {
             background: #1e293b;
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
             color: #ffffff;
         }
+
         .compact-floating-search-chip .cfs-icon {
-            display: inline-flex; align-items: center; justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             color: #94a3b8;
         }
+
         .compact-floating-search-chip .cfs-query {
-            color: #f8fafc; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            color: #f8fafc;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
+
         .compact-floating-search-chip .cfs-clear {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 20px; height: 20px; border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
             background: rgba(255, 255, 255, 0.15);
-            color: #ffffff; text-decoration: none;
-            font-size: 0.72rem; line-height: 1; margin-left: 4px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.72rem;
+            line-height: 1;
+            margin-left: 4px;
             transition: background 0.15s;
         }
+
         .compact-floating-search-chip .cfs-clear:hover {
             background: rgba(255, 255, 255, 0.3);
             color: #ffffff;
@@ -456,12 +590,18 @@
 
         /* Right actions */
         .topbar-actions {
-            display: flex; align-items: center;
-            gap: 0.65rem; margin-left: auto; flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
         /* Content area */
-        .lms-content { flex: 1; padding: 1.5rem; }
+        .lms-content {
+            flex: 1;
+            padding: 1.5rem;
+        }
 
         /* Footer */
         .lms-footer {
@@ -471,537 +611,568 @@
             font-size: 0.8rem;
             color: #64748b;
         }
-        .lms-footer a { color: #64748b; text-decoration: none; }
-        .lms-footer a:hover { color: #0f172a; }
+
+        .lms-footer a {
+            color: #64748b;
+            text-decoration: none;
+        }
+
+        .lms-footer a:hover {
+            color: #0f172a;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="lms-wrapper" id="lmsWrapper">
+    <div class="lms-wrapper" id="lmsWrapper">
 
-    <!-- ===== LEFT SIDEBAR ===== -->
-    <aside class="lms-sidebar" id="lmsSidebar">
+        <!-- ===== LEFT SIDEBAR ===== -->
+        <aside class="lms-sidebar" id="lmsSidebar">
 
-        <a class="sidebar-brand" href="{% url 'courses:course_list' %}">
-            <span class="brand-mark">L</span>
-            <span class="brand-name">LMS Portal</span>
-        </a>
-
-        <nav class="sidebar-nav">
-            <span class="nav-section-label">Navigation</span>
-
-            <a class="nav-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}"
-               href="{% url 'courses:course_list' %}">
-                <span class="nav-icon">📚</span> Courses
-            </a>
-            <a class="nav-link {% if request.resolver_match.url_name == 'instructor_list' or request.resolver_match.url_name == 'instructor_detail' %}active{% endif %}"
-               href="{% url 'accounts:instructor_list' %}">
-                <span class="nav-icon">👨‍🏫</span> Instructors
+            <a class="sidebar-brand" href="{% url 'courses:course_list' %}">
+                <span class="brand-mark">L</span>
+                <span class="brand-name">LMS Portal</span>
             </a>
 
-            {% if user.is_authenticated %}
+            <nav class="sidebar-nav">
+                <span class="nav-section-label">Navigation</span>
+
+                <a class="nav-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}"
+                    href="{% url 'courses:course_list' %}">
+                    <span class="nav-icon">📚</span> Courses
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'instructor_list' or request.resolver_match.url_name == 'instructor_detail' %}active{% endif %}"
+                    href="{% url 'accounts:instructor_list' %}">
+                    <span class="nav-icon">👨‍🏫</span> Instructors
+                </a>
+
+                {% if user.is_authenticated %}
                 {% if user.is_instructor %}
-                    <div class="dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="sidebarMyCoursesDD"
-                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="nav-icon">🎓</span>
-                            My Courses
-                            <span class="badge ms-auto" style="background:rgba(255,255,255,0.15);color:#fff;font-size:0.58rem;min-width:18px;">{{ user.courses_created.count }}</span>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="sidebarMyCoursesDD">
-                            <li><h6 class="dropdown-header" style="font-size:0.58rem;">AUTHORED COURSES</h6></li>
-                            {% for my_c in user.courses_created.all %}
-                            <li>
-                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'courses:course_detail' my_c.slug %}">
-                                    <span class="text-truncate me-2" style="max-width:130px;">{{ my_c.title }}</span>
-                                    <span class="badge" style="background:rgba(255,255,255,0.15);font-size:0.55rem;">{{ my_c.status|title }}</span>
-                                </a>
-                            </li>
-                            {% empty %}
-                            <li><span class="dropdown-item text-muted" style="font-size:0.78rem;">No courses yet</span></li>
-                            {% endfor %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'dashboard:instructor_dashboard' %}" style="font-size:0.78rem;">Instructor Studio →</a></li>
-                            <li><a class="dropdown-item fw-semibold" href="{% url 'courses:course_create' %}" style="font-size:0.78rem;">+ Create New Course</a></li>
-                        </ul>
-                    </div>
-                    <a class="nav-link" href="{% url 'courses:course_create' %}">
-                        <span class="nav-icon">➕</span> New Course
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="sidebarMyCoursesDD" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="nav-icon">🎓</span>
+                        My Courses
+                        <span class="badge ms-auto"
+                            style="background:rgba(255,255,255,0.15);color:#fff;font-size:0.58rem;min-width:18px;">{{ user.courses_created.count }}</span>
                     </a>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
-                       href="{% url 'payments:coupon_list' %}">
-                        <span class="nav-icon">🎟️</span> Coupons
-                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="sidebarMyCoursesDD">
+                        <li>
+                            <h6 class="dropdown-header" style="font-size:0.58rem;">AUTHORED COURSES</h6>
+                        </li>
+                        {% for my_c in user.courses_created.all %}
+                        <li>
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                href="{% url 'courses:course_detail' my_c.slug %}">
+                                <span class="text-truncate me-2" style="max-width:130px;">{{ my_c.title }}</span>
+                                <span class="badge" style="background:rgba(255,255,255,0.15);font-size:0.55rem;">{{ my_c.status|title }}</span>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li><span class="dropdown-item text-muted" style="font-size:0.78rem;">No courses yet</span></li>
+                        {% endfor %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="{% url 'dashboard:instructor_dashboard' %}"
+                                style="font-size:0.78rem;">Instructor Studio →</a></li>
+                        <li><a class="dropdown-item fw-semibold" href="{% url 'courses:course_create' %}"
+                                style="font-size:0.78rem;">+ Create New Course</a></li>
+                    </ul>
+                </div>
+                <a class="nav-link" href="{% url 'courses:course_create' %}">
+                    <span class="nav-icon">➕</span> New Course
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
+                    href="{% url 'payments:coupon_list' %}">
+                    <span class="nav-icon">🎟️</span> Coupons
+                </a>
                 {% else %}
-                    <a class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}"
-                       href="{% url 'enrollments:my_courses' %}">
-                        <span class="nav-icon">📖</span> My Courses
-                    </a>
-                    <a class="nav-link {% if request.resolver_match.url_name == 'my_certificates' %}active{% endif %}"
-                       href="{% url 'enrollments:my_certificates' %}">
-                        <span class="nav-icon">🏆</span> Certificates
-                    </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}"
+                    href="{% url 'enrollments:my_courses' %}">
+                    <span class="nav-icon">📖</span> My Courses
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'my_certificates' %}active{% endif %}"
+                    href="{% url 'enrollments:my_certificates' %}">
+                    <span class="nav-icon">🏆</span> Certificates
+                </a>
                 {% endif %}
 
                 <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
-                   href="{% url 'dashboard:index' %}">
+                    href="{% url 'dashboard:index' %}">
                     <span class="nav-icon">📊</span> Dashboard
                 </a>
 
                 {% if user.role == 'admin' or user.is_superuser %}
                 <span class="nav-section-label">Administration</span>
                 <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
-                   href="{% url 'dashboard:admin_dashboard' %}">
+                    href="{% url 'dashboard:admin_dashboard' %}">
                     <span class="nav-icon">⚙️</span> Admin Console
                 </a>
                 <a class="nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
-                   href="{% url 'payments:coupon_list' %}">
+                    href="{% url 'payments:coupon_list' %}">
                     <span class="nav-icon">🎟️</span> Coupons
                 </a>
                 {% endif %}
+                {% endif %}
+            </nav>
+
+            <!-- Sidebar Footer -->
+            {% if user.is_authenticated %}
+            <div class="sidebar-footer">
+                <a href="{% url 'accounts:profile' %}"
+                    class="d-flex align-items-center gap-2 text-decoration-none mb-2 overflow-hidden">
+                    <div
+                        style="width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.82rem;color:#fff;font-weight:700;flex-shrink:0;">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div class="overflow-hidden">
+                        <div
+                            style="color:#fff;font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:148px;">
+                            {{ user.username }}</div>
+                        <div style="color:rgba(255,255,255,0.4);font-size:0.63rem;">{{ user.get_role_display }}</div>
+                    </div>
+                </a>
+                <form action="{% url 'accounts:logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm w-100"
+                        style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);font-size:0.76rem;">
+                        Sign Out
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="sidebar-footer d-flex flex-column gap-2">
+                <a href="{% url 'accounts:login' %}" class="btn btn-sm w-100"
+                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);font-size:0.78rem;">Sign
+                    In</a>
+                <a href="{% url 'accounts:signup' %}" class="btn btn-sm w-100"
+                    style="background:#fff;color:#0f172a;font-size:0.78rem;font-weight:600;">Create Account</a>
+            </div>
             {% endif %}
-        </nav>
 
-        <!-- Sidebar Footer -->
-        {% if user.is_authenticated %}
-        <div class="sidebar-footer">
-            <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center gap-2 text-decoration-none mb-2 overflow-hidden">
-                <div style="width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.82rem;color:#fff;font-weight:700;flex-shrink:0;">
-                    {{ user.username|first|upper }}
-                </div>
-                <div class="overflow-hidden">
-                    <div style="color:#fff;font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:148px;">{{ user.username }}</div>
-                    <div style="color:rgba(255,255,255,0.4);font-size:0.63rem;">{{ user.get_role_display }}</div>
-                </div>
-            </a>
-            <form action="{% url 'accounts:logout' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm w-100"
-                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);font-size:0.76rem;">
-                    Sign Out
+        </aside>
+
+        <!-- Backdrop (mobile / when sidebar open over content) -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- ===== RIGHT: TOPBAR + CONTENT ===== -->
+        <div class="lms-main" id="lmsMain">
+
+            <!-- ===== TOP BAR ===== -->
+            <header class="lms-topbar">
+
+                <!-- Hamburger / Toggle Button -->
+                <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle navigation"
+                    aria-label="Toggle navigation">
+                    <svg id="iconMenu" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"
+                        viewBox="0 0 24 24">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                    <svg id="iconClose" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"
+                        viewBox="0 0 24 24" style="display:none;">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                 </button>
-            </form>
-        </div>
-        {% else %}
-        <div class="sidebar-footer d-flex flex-column gap-2">
-            <a href="{% url 'accounts:login' %}" class="btn btn-sm w-100"
-               style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);font-size:0.78rem;">Sign In</a>
-            <a href="{% url 'accounts:signup' %}" class="btn btn-sm w-100"
-               style="background:#fff;color:#0f172a;font-size:0.78rem;font-weight:600;">Create Account</a>
-        </div>
-        {% endif %}
 
-    </aside>
+                <!-- Home Button (left of search bar) -->
+                <a href="{% url 'courses:course_list' %}" class="topbar-home-btn" id="topbarHomeBtn"
+                    title="Home - Course Catalog" aria-label="Home">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"></path>
+                    </svg>
+                </a>
 
-    <!-- Backdrop (mobile / when sidebar open over content) -->
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-    <!-- ===== RIGHT: TOPBAR + CONTENT ===== -->
-    <div class="lms-main" id="lmsMain">
-
-        <!-- ===== TOP BAR ===== -->
-        <header class="lms-topbar">
-
-            <!-- Hamburger / Toggle Button -->
-            <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle navigation" aria-label="Toggle navigation">
-                <svg id="iconMenu" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <line x1="3" y1="12" x2="21" y2="12"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>
-                <svg id="iconClose" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" style="display:none;">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
-
-            <!-- Home Button (left of search bar) -->
-            <a href="{% url 'courses:course_list' %}" class="topbar-home-btn" id="topbarHomeBtn" title="Home - Course Catalog" aria-label="Home">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"></path>
-                </svg>
-            </a>
-
-            <!-- Global Search Bar with Autocomplete & Compact Floating State -->
-            <div class="topbar-search" id="topbarSearchWrap">
-                <form method="get" action="{% url 'courses:course_list' %}" id="topbarSearchForm" class="m-0" autocomplete="off">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                        </span>
-                        <input type="text"
-                               name="q"
-                               id="topbarSearchInput"
-                               class="form-control"
-                               placeholder="Search courses, instructors..."
-                               autocomplete="off"
-                               aria-autocomplete="list"
-                               aria-controls="searchSuggestions"
-                               value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
-                        <button type="button"
-                                id="topbarClearBtn"
+                <!-- Global Search Bar with Autocomplete & Compact Floating State -->
+                <div class="topbar-search" id="topbarSearchWrap">
+                    <form method="get" action="{% url 'courses:course_list' %}" id="topbarSearchForm" class="m-0"
+                        autocomplete="off">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </span>
+                            <input type="text" name="q" id="topbarSearchInput" class="form-control"
+                                placeholder="Search courses, instructors..." autocomplete="off" aria-autocomplete="list"
+                                aria-controls="searchSuggestions"
+                                value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
+                            <button type="button" id="topbarClearBtn"
                                 style="display:{% if request.GET.q %}inline-flex{% else %}none{% endif %};background:none;border:none;color:#94a3b8;padding:0 8px;align-items:center;cursor:pointer;font-size:0.85rem;line-height:1;"
                                 title="Clear search">✕</button>
-                        <button type="submit"
+                            <button type="submit"
                                 class="btn-search {% if request.GET.q %}btn-search-compact-floating{% endif %}"
-                                id="topbarSearchBtn"
-                                title="Search">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1" style="vertical-align:-1px;">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                            <span>Search</span>
-                        </button>
-                    </div>
-                </form>
-                <!-- Autocomplete Suggestions Dropdown -->
-                <div class="search-suggestions-dropdown" id="searchSuggestions" style="display:none;" role="listbox"></div>
-            </div>
+                                id="topbarSearchBtn" title="Search">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" class="me-1" style="vertical-align:-1px;">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <span>Search</span>
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Autocomplete Suggestions Dropdown -->
+                    <div class="search-suggestions-dropdown" id="searchSuggestions" style="display:none;"
+                        role="listbox"></div>
+                </div>
 
-            <!-- Right Actions -->
-            <div class="topbar-actions">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'discussions:notifications_list' %}" class="text-muted position-relative text-decoration-none" title="Notifications" style="font-size:1.1rem;line-height:1;">
+                <!-- Right Actions -->
+                <div class="topbar-actions">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'discussions:notifications_list' %}"
+                        class="text-muted position-relative text-decoration-none" title="Notifications"
+                        style="font-size:1.1rem;line-height:1;">
                         🔔
                     </a>
-                    <a href="{% url 'accounts:profile' %}" class="user-pill text-decoration-none" style="font-size:0.8rem;">
+                    <a href="{% url 'accounts:profile' %}" class="user-pill text-decoration-none"
+                        style="font-size:0.8rem;">
                         <span>{{ user.username }}</span>
                         <span class="badge">{{ user.get_role_display }}</span>
                     </a>
-                {% else %}
+                    {% else %}
                     <a href="{% url 'accounts:login' %}" class="btn btn-secondary btn-sm">Sign In</a>
                     <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-sm">Create Account</a>
-                {% endif %}
-            </div>
-        </header>
+                    {% endif %}
+                </div>
+            </header>
 
-        <!-- Main Content -->
-        <main class="lms-content {% block main_class %}{% endblock %}">
-            {% if messages %}
+            <!-- Main Content -->
+            <main class="lms-content {% block main_class %}{% endblock %}">
+                {% if messages %}
                 {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show mb-4" role="alert">
+                <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show mb-4"
+                    role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="lms-footer">
+                <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+                    <p class="mb-0">&copy; 2026 Academic Learning Management System. All rights reserved.</p>
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'courses:course_list' %}">Course Catalog</a>
+                        <a href="#">Privacy</a>
+                        <a href="#">Terms</a>
+                    </div>
+                </div>
+            </footer>
+
+            <!-- Compact Floating Search Chip on Screen (Active after search) -->
+            {% if request.GET.q %}
+            <div class="compact-floating-search-chip" id="floatingSearchChip"
+                title="Active Search: Click to scroll to search bar">
+                <span class="cfs-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+                <span class="cfs-query">"{{ request.GET.q }}"</span>
+                <a href="{% url 'courses:course_list' %}" class="cfs-clear" title="Clear search"
+                    onclick="event.stopPropagation();">✕</a>
+            </div>
             {% endif %}
 
-            {% block content %}{% endblock %}
-        </main>
+        </div><!-- /.lms-main -->
+    </div><!-- /.lms-wrapper -->
 
-        <!-- Footer -->
-        <footer class="lms-footer">
-            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
-                <p class="mb-0">&copy; 2026 Academic Learning Management System. All rights reserved.</p>
-                <div class="d-flex gap-3">
-                    <a href="{% url 'courses:course_list' %}">Course Catalog</a>
-                    <a href="#">Privacy</a>
-                    <a href="#">Terms</a>
-                </div>
-            </div>
-        </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            var sidebar = document.getElementById('lmsSidebar');
+            var main = document.getElementById('lmsMain');
+            var toggleBtn = document.getElementById('sidebarToggleBtn');
+            var backdrop = document.getElementById('sidebarBackdrop');
+            var iconMenu = document.getElementById('iconMenu');
+            var iconClose = document.getElementById('iconClose');
 
-        <!-- Compact Floating Search Chip on Screen (Active after search) -->
-        {% if request.GET.q %}
-        <div class="compact-floating-search-chip" id="floatingSearchChip" title="Active Search: Click to scroll to search bar">
-            <span class="cfs-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </span>
-            <span class="cfs-query">"{{ request.GET.q }}"</span>
-            <a href="{% url 'courses:course_list' %}" class="cfs-clear" title="Clear search" onclick="event.stopPropagation();">✕</a>
-        </div>
-        {% endif %}
+            // Restore state from localStorage (default: open)
+            var STORAGE_KEY = 'lmsSidebarOpen';
+            var isOpen = localStorage.getItem(STORAGE_KEY) !== 'false';
 
-    </div><!-- /.lms-main -->
-</div><!-- /.lms-wrapper -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-(function() {
-    var sidebar     = document.getElementById('lmsSidebar');
-    var main        = document.getElementById('lmsMain');
-    var toggleBtn   = document.getElementById('sidebarToggleBtn');
-    var backdrop    = document.getElementById('sidebarBackdrop');
-    var iconMenu    = document.getElementById('iconMenu');
-    var iconClose   = document.getElementById('iconClose');
-
-    // Restore state from localStorage (default: open)
-    var STORAGE_KEY = 'lmsSidebarOpen';
-    var isOpen = localStorage.getItem(STORAGE_KEY) !== 'false';
-
-    function applyState(open, animate) {
-        if (!animate) {
-            sidebar.style.transition = 'none';
-            main.style.transition = 'none';
-        }
-
-        if (open) {
-            sidebar.classList.remove('sidebar-collapsed');
-            main.classList.remove('sidebar-collapsed');
-            iconMenu.style.display  = 'none';
-            iconClose.style.display = 'block';
-            // Show backdrop only on small screens
-            if (window.innerWidth < 768) {
-                backdrop.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            } else {
-                backdrop.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-        } else {
-            sidebar.classList.add('sidebar-collapsed');
-            main.classList.add('sidebar-collapsed');
-            iconMenu.style.display  = 'block';
-            iconClose.style.display = 'none';
-            backdrop.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        if (!animate) {
-            // Re-enable transitions after a tick
-            requestAnimationFrame(function() {
-                sidebar.style.transition = '';
-                main.style.transition = '';
-            });
-        }
-    }
-
-    // Apply immediately (no animation) on load
-    applyState(isOpen, false);
-
-    // Toggle on button click
-    toggleBtn.addEventListener('click', function() {
-        isOpen = !isOpen;
-        localStorage.setItem(STORAGE_KEY, isOpen);
-        applyState(isOpen, true);
-    });
-
-    // Close on backdrop click (mobile)
-    backdrop.addEventListener('click', function() {
-        isOpen = false;
-        localStorage.setItem(STORAGE_KEY, isOpen);
-        applyState(isOpen, true);
-    });
-
-    // On resize: adjust backdrop visibility
-    window.addEventListener('resize', function() {
-        if (!sidebar.classList.contains('sidebar-collapsed')) {
-            if (window.innerWidth >= 768) {
-                backdrop.classList.remove('show');
-                document.body.style.overflow = '';
-            } else {
-                backdrop.classList.add('show');
-            }
-        }
-    });
-})();
-
-// Autocomplete & Compact Floating Search
-(function() {
-    var input       = document.getElementById('topbarSearchInput');
-    var suggBox     = document.getElementById('searchSuggestions');
-    var form        = document.getElementById('topbarSearchForm');
-    var btn         = document.getElementById('topbarSearchBtn');
-    var clearBtn    = document.getElementById('topbarClearBtn');
-    var wrap        = document.getElementById('topbarSearchWrap');
-    var floatChip   = document.getElementById('floatingSearchChip');
-    var debounceTimer = null;
-    var abortController = null;
-    var selectedIndex = -1;
-    var currentItems = [];
-
-    if (!input || !suggBox) return;
-
-    function escapeHtml(text) {
-        var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-        return (text || '').replace(/[&<>"']/g, function(m) { return map[m]; });
-    }
-
-    function highlightQuery(title, query) {
-        if (!query) return escapeHtml(title);
-        var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-        return escapeHtml(title).replace(re, '<mark>$1</mark>');
-    }
-
-    function renderSuggestions(items, q) {
-        currentItems = items;
-        selectedIndex = -1;
-        if (!items || items.length === 0) {
-            suggBox.innerHTML = '<div class="sg-empty">No matching courses found for "<strong>' + escapeHtml(q) + '</strong>"</div>';
-            suggBox.style.display = 'block';
-            return;
-        }
-
-        var html = '<div class="sg-header">Suggested Courses (' + items.length + ')</div>';
-        items.forEach(function(item, idx) {
-            var thumbHtml = item.thumbnail
-                ? '<img class="sg-thumb" src="' + escapeHtml(item.thumbnail) + '" referrerpolicy="no-referrer" alt="" onerror="this.onerror=null;this.outerHTML=\'<div class=sg-thumb-fallback>' + escapeHtml((item.category || 'LMS').substring(0, 4)) + '</div>\'">'
-                : '<div class="sg-thumb-fallback">' + escapeHtml((item.category || 'LMS').substring(0, 4)) + '</div>';
-
-            var priceHtml = item.is_free
-                ? '<span class="sg-price-free">FREE</span>'
-                : '$' + parseFloat(item.price || 0).toFixed(2);
-
-            html += '<div class="sg-item" data-url="' + escapeHtml(item.url) + '" data-index="' + idx + '" role="option">'
-                  + thumbHtml
-                  + '<div class="sg-details">'
-                  +   '<div class="sg-title">' + highlightQuery(item.title, q) + '</div>'
-                  +   '<div class="sg-meta">'
-                  +     (item.category ? '<span class="sg-meta-badge">' + escapeHtml(item.category) + '</span>' : '')
-                  +     (item.level ? '<span>' + escapeHtml(item.level) + '</span>' : '')
-                  +     (item.instructor ? '<span>• ' + escapeHtml(item.instructor) + '</span>' : '')
-                  +   '</div>'
-                  + '</div>'
-                  + '<div class="sg-price">' + priceHtml + '</div>'
-                  + '</div>';
-        });
-
-        html += '<div class="sg-footer">'
-              +   '<span>Press <strong>Enter</strong> to search all</span>'
-              +   '<a href="/courses/?q=' + encodeURIComponent(q) + '">View all results &rarr;</a>'
-              + '</div>';
-
-        suggBox.innerHTML = html;
-        suggBox.style.display = 'block';
-
-        suggBox.querySelectorAll('.sg-item').forEach(function(el) {
-            el.addEventListener('click', function() {
-                var url = this.getAttribute('data-url');
-                if (url) window.location.href = url;
-            });
-        });
-    }
-
-    function closeSuggestions() {
-        suggBox.style.display = 'none';
-        suggBox.innerHTML = '';
-        selectedIndex = -1;
-        currentItems = [];
-    }
-
-    function updateSelection(items) {
-        items.forEach(function(el, i) {
-            if (i === selectedIndex) {
-                el.classList.add('sg-active');
-                el.scrollIntoView({ block: 'nearest' });
-            } else {
-                el.classList.remove('sg-active');
-            }
-        });
-    }
-
-    function fetchSuggestions(query) {
-        if (!query || query.length < 1) {
-            closeSuggestions();
-            return;
-        }
-
-        if (abortController) abortController.abort();
-        abortController = new AbortController();
-
-        fetch('/courses/api/suggest/?q=' + encodeURIComponent(query), { signal: abortController.signal })
-            .then(function(res) {
-                if (!res.ok) throw new Error('Network error');
-                return res.json();
-            })
-            .then(function(data) {
-                renderSuggestions(data.suggestions || [], query);
-            })
-            .catch(function(err) {
-                if (err.name !== 'AbortError') closeSuggestions();
-            });
-    }
-
-    input.addEventListener('input', function() {
-        var val = this.value.trim();
-        if (clearBtn) {
-            clearBtn.style.display = val.length > 0 ? 'inline-flex' : 'none';
-        }
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(function() {
-            fetchSuggestions(val);
-        }, 200);
-    });
-
-    input.addEventListener('keydown', function(e) {
-        var items = suggBox.querySelectorAll('.sg-item');
-        if (suggBox.style.display === 'block' && items.length > 0) {
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                selectedIndex = (selectedIndex + 1) >= items.length ? 0 : selectedIndex + 1;
-                updateSelection(items);
-                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
-                    input.value = currentItems[selectedIndex].title;
+            function applyState(open, animate) {
+                if (!animate) {
+                    sidebar.style.transition = 'none';
+                    main.style.transition = 'none';
                 }
-                return;
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                selectedIndex = (selectedIndex - 1) < 0 ? items.length - 1 : selectedIndex - 1;
-                updateSelection(items);
-                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
-                    input.value = currentItems[selectedIndex].title;
+
+                if (open) {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    main.classList.remove('sidebar-collapsed');
+                    iconMenu.style.display = 'none';
+                    iconClose.style.display = 'block';
+                    // Show backdrop only on small screens
+                    if (window.innerWidth < 768) {
+                        backdrop.classList.add('show');
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        backdrop.classList.remove('show');
+                        document.body.style.overflow = '';
+                    }
+                } else {
+                    sidebar.classList.add('sidebar-collapsed');
+                    main.classList.add('sidebar-collapsed');
+                    iconMenu.style.display = 'block';
+                    iconClose.style.display = 'none';
+                    backdrop.classList.remove('show');
+                    document.body.style.overflow = '';
                 }
-                return;
-            } else if (e.key === 'Enter') {
-                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
-                    e.preventDefault();
-                    window.location.href = currentItems[selectedIndex].url;
+
+                if (!animate) {
+                    // Re-enable transitions after a tick
+                    requestAnimationFrame(function () {
+                        sidebar.style.transition = '';
+                        main.style.transition = '';
+                    });
+                }
+            }
+
+            // Apply immediately (no animation) on load
+            applyState(isOpen, false);
+
+            // Toggle on button click
+            toggleBtn.addEventListener('click', function () {
+                isOpen = !isOpen;
+                localStorage.setItem(STORAGE_KEY, isOpen);
+                applyState(isOpen, true);
+            });
+
+            // Close on backdrop click (mobile)
+            backdrop.addEventListener('click', function () {
+                isOpen = false;
+                localStorage.setItem(STORAGE_KEY, isOpen);
+                applyState(isOpen, true);
+            });
+
+            // On resize: adjust backdrop visibility
+            window.addEventListener('r  esize', function () {
+                if (!sidebar.classList.contains('sidebar-collapsed')) {
+                    if (window.innerWidth >= 768) {
+                        backdrop.classList.remove('show');
+                        document.body.style.overflow = '';
+                    } else {
+                        backdrop.classList.add('show');
+                    }
+                }
+            });
+        })();
+
+        // Autocomplete & Compact Floating Search
+        (function () {
+            var input = document.getElementById('topbarSearchInput');
+            var suggBox = document.getElementById('searchSuggestions');
+            var form = document.getElementById('topbarSearchForm');
+            var btn = document.getElementById('topbarSearchBtn');
+            var clearBtn = document.getElementById('topbarClearBtn');
+            var wrap = document.getElementById('topbarSearchWrap');
+            var floatChip = document.getElementById('floatingSearchChip');
+            var debounceTimer = null;
+            var abortController = null;
+            var selectedIndex = -1;
+            var currentItems = [];
+
+            if (!input || !suggBox) return;
+
+            function escapeHtml(text) {
+                var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+                return (text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
+            }
+
+            function highlightQuery(title, query) {
+                if (!query) return escapeHtml(title);
+                var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                return escapeHtml(title).replace(re, '<mark>$1</mark>');
+            }
+
+            function renderSuggestions(items, q) {
+                currentItems = items;
+                selectedIndex = -1;
+                if (!items || items.length === 0) {
+                    suggBox.innerHTML = '<div class="sg-empty">No matching courses found for "<strong>' + escapeHtml(q) + '</strong>"</div>';
+                    suggBox.style.display = 'block';
                     return;
                 }
-            } else if (e.key === 'Escape') {
-                closeSuggestions();
-                return;
+
+                var html = '<div class="sg-header">Suggested Courses (' + items.length + ')</div>';
+                items.forEach(function (item, idx) {
+                    var thumbHtml = item.thumbnail
+                        ? '<img class="sg-thumb" src="' + escapeHtml(item.thumbnail) + '" referrerpolicy="no-referrer" alt="" onerror="this.onerror=null;this.outerHTML=\'<div class=sg-thumb-fallback>' + escapeHtml((item.category || 'LMS').substring(0, 4)) + '</div>\'">'
+                        : '<div class="sg-thumb-fallback">' + escapeHtml((item.category || 'LMS').substring(0, 4)) + '</div>';
+
+                    var priceHtml = item.is_free
+                        ? '<span class="sg-price-free">FREE</span>'
+                        : '$' + parseFloat(item.price || 0).toFixed(2);
+
+                    html += '<div class="sg-item" data-url="' + escapeHtml(item.url) + '" data-index="' + idx + '" role="option">'
+                        + thumbHtml
+                        + '<div class="sg-details">'
+                        + '<div class="sg-title">' + highlightQuery(item.title, q) + '</div>'
+                        + '<div class="sg-meta">'
+                        + (item.category ? '<span class="sg-meta-badge">' + escapeHtml(item.category) + '</span>' : '')
+                        + (item.level ? '<span>' + escapeHtml(item.level) + '</span>' : '')
+                        + (item.instructor ? '<span>• ' + escapeHtml(item.instructor) + '</span>' : '')
+                        + '</div>'
+                        + '</div>'
+                        + '<div class="sg-price">' + priceHtml + '</div>'
+                        + '</div>';
+                });
+
+                html += '<div class="sg-footer">'
+                    + '<span>Press <strong>Enter</strong> to search all</span>'
+                    + '<a href="/courses/?q=' + encodeURIComponent(q) + '">View all results &rarr;</a>'
+                    + '</div>';
+
+                suggBox.innerHTML = html;
+                suggBox.style.display = 'block';
+
+                suggBox.querySelectorAll('.sg-item').forEach(function (el) {
+                    el.addEventListener('click', function () {
+                        var url = this.getAttribute('data-url');
+                        if (url) window.location.href = url;
+                    });
+                });
             }
-        }
-    });
 
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            input.value = '';
-            clearBtn.style.display = 'none';
-            closeSuggestions();
-            input.focus();
-            if (window.location.search.indexOf('q=') !== -1) {
-                window.location.href = '/courses/';
+            function closeSuggestions() {
+                suggBox.style.display = 'none';
+                suggBox.innerHTML = '';
+                selectedIndex = -1;
+                currentItems = [];
             }
-        });
-    }
 
-    if (form) {
-        form.addEventListener('submit', function() {
-            if (btn) {
-                btn.classList.add('is-compact-floating');
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" style="width:11px;height:11px;border-width:2px;"></span><span>Searching...</span>';
+            function updateSelection(items) {
+                items.forEach(function (el, i) {
+                    if (i === selectedIndex) {
+                        el.classList.add('sg-active');
+                        el.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        el.classList.remove('sg-active');
+                    }
+                });
             }
-            closeSuggestions();
-        });
-    }
 
-    document.addEventListener('click', function(e) {
-        if (wrap && !wrap.contains(e.target)) {
-            closeSuggestions();
-        }
-    });
+            function fetchSuggestions(query) {
+                if (!query || query.length < 1) {
+                    closeSuggestions();
+                    return;
+                }
 
-    if (floatChip) {
-        floatChip.addEventListener('click', function(e) {
-            if (e.target.closest('.cfs-clear')) return;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setTimeout(function() {
-                input.focus();
-                input.select();
-            }, 300);
-        });
-    }
-})();
-</script>
-{% block extra_js %}{% endblock %}
+                if (abortController) abortController.abort();
+                abortController = new AbortController();
+
+                fetch('/courses/api/suggest/?q=' + encodeURIComponent(query), { signal: abortController.signal })
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('Network error');
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        renderSuggestions(data.suggestions || [], query);
+                    })
+                    .catch(function (err) {
+                        if (err.name !== 'AbortError') closeSuggestions();
+                    });
+            }
+
+            input.addEventListener('input', function () {
+                var val = this.value.trim();
+                if (clearBtn) {
+                    clearBtn.style.display = val.length > 0 ? 'inline-flex' : 'none';
+                }
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    fetchSuggestions(val);
+                }, 200);
+            });
+
+            input.addEventListener('keydown', function (e) {
+                var items = suggBox.querySelectorAll('.sg-item');
+                if (suggBox.style.display === 'block' && items.length > 0) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedIndex = (selectedIndex + 1) >= items.length ? 0 : selectedIndex + 1;
+                        updateSelection(items);
+                        if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                            input.value = currentItems[selectedIndex].title;
+                        }
+                        return;
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedIndex = (selectedIndex - 1) < 0 ? items.length - 1 : selectedIndex - 1;
+                        updateSelection(items);
+                        if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                            input.value = currentItems[selectedIndex].title;
+                        }
+                        return;
+                    } else if (e.key === 'Enter') {
+                        if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                            e.preventDefault();
+                            window.location.href = currentItems[selectedIndex].url;
+                            return;
+                        }
+                    } else if (e.key === 'Escape') {
+                        closeSuggestions();
+                        return;
+                    }
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    input.value = '';
+                    clearBtn.style.display = 'none';
+                    closeSuggestions();
+                    input.focus();
+                    if (window.location.search.indexOf('q=') !== -1) {
+                        window.location.href = '/courses/';
+                    }
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', function () {
+                    if (btn) {
+                        btn.classList.add('is-compact-floating');
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" style="width:11px;height:11px;border-width:2px;"></span><span>Searching...</span>';
+                    }
+                    closeSuggestions();
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                if (wrap && !wrap.contains(e.target)) {
+                    closeSuggestions();
+                }
+            });
+
+            if (floatChip) {
+                floatChip.addEventListener('click', function (e) {
+                    if (e.target.closest('.cfs-clear')) return;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setTimeout(function () {
+                        input.focus();
+                        input.select();
+                    }, 300);
+                });
+            }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
+
 </html>

@@ -265,7 +265,13 @@
             {% endif %}
 
             <div class="mb-3">
-                {% if course.is_free %}
+                {% if is_enrolled %}
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="badge bg-success text-white px-2.5 py-1.5" style="font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;">✓ ENROLLED</span>
+                        <span class="badge bg-light text-dark border" style="font-size: 0.72rem;">Lifetime Access</span>
+                    </div>
+                    <p class="text-muted small mb-0">You own this course. All syllabus modules, videos &amp; certificates are unlocked.</p>
+                {% elif course.is_free %}
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <h2 class="display-6 fw-bold text-dark mb-0">Free</h2>
                         <span class="badge bg-light text-dark border px-2 py-1">Open Access</span>
@@ -275,7 +281,6 @@
                     <div class="d-flex align-items-baseline gap-2 mb-1">
                         <h2 class="display-6 fw-bold text-dark mb-0">${{ course.discount_price }}</h2>
                         <span class="fs-5 text-muted text-decoration-line-through">${{ course.price }}</span>
-                        <span class="badge bg-dark text-white px-2 py-1">{{ course.discount_percentage }}% OFF</span>
                     </div>
                     <div class="text-success small fw-semibold">
                         <span>&check; Promotional pricing &bull; Save ${{ course.savings_amount }}</span>
@@ -363,20 +368,15 @@
                         </a>
                     </div>
                 {% elif is_enrolled %}
-                    <div class="p-3 bg-light rounded-3 border mb-3">
-                        <span class="badge mb-1">Enrolled</span>
-                        <p class="text-dark small fw-semibold mb-0">You have full active access to all lessons.</p>
-                    </div>
-
                     <div class="d-grid gap-2">
                         {% with first_lesson=course.lessons.first %}
                             {% if first_lesson %}
-                                <a href="{% url 'lessons:lesson_detail' course.slug first_lesson.id %}" class="btn btn-primary">
+                                <a href="{% url 'lessons:lesson_detail' course.slug first_lesson.id %}" class="btn btn-primary py-2.5 fw-semibold">
                                     Continue Learning &rarr;
                                 </a>
                             {% endif %}
                         {% endwith %}
-                        <a href="{% url 'enrollments:unenroll' course.slug %}" class="btn btn-secondary btn-sm">
+                        <a href="{% url 'enrollments:unenroll' course.slug %}" class="btn btn-outline-secondary btn-sm">
                             Withdraw / Unenroll
                         </a>
                     </div>

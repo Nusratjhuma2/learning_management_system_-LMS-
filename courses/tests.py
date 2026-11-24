@@ -178,12 +178,11 @@ class CoursePricingViewsIntegrationTests(TestCase):
         )
 
     def test_course_detail_shows_pricing(self):
-        # Paid course shows discount price and badge
+        # Paid course shows discount price and savings
         res = self.client.get(reverse('courses:course_detail', kwargs={'slug': self.paid_course.slug}))
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, '$75.00')
         self.assertContains(res, '$100.00')
-        self.assertContains(res, '25% OFF')
         self.assertContains(res, 'Save $25.00')
 
         # Free course shows Free
