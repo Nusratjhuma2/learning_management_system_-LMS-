@@ -46,8 +46,14 @@ document.addEventListener('DOMContentLoaded', function () {
         logSearchInput.addEventListener('input', filterSecurityLogs);
     }
 
-    // Initialize Chart.js Visualizations
+    // Initialize Chart.js Visualizations using Role Theme Accent
     if (window.Chart) {
+        var activeTheme = (typeof window.getRoleTheme === 'function')
+            ? window.getRoleTheme((window.LMS_AUTH_CONTEXT && window.LMS_AUTH_CONTEXT.role) || 'admin')
+            : { accentHex: '#1E293B', buttonHoverHex: '#0F172A' };
+        var accentHex = activeTheme.accentHex || '#1E293B';
+        var accentHoverHex = activeTheme.buttonHoverHex || '#0F172A';
+
         Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
         Chart.defaults.color = '#64748b';
 
@@ -55,8 +61,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var enrollCtx = document.getElementById('enrollmentTrendChart');
         if (enrollCtx) {
             var gradientEnroll = enrollCtx.getContext('2d').createLinearGradient(0, 0, 0, 260);
-            gradientEnroll.addColorStop(0, 'rgba(15, 23, 42, 0.12)');
-            gradientEnroll.addColorStop(1, 'rgba(15, 23, 42, 0.00)');
+            gradientEnroll.addColorStop(0, 'rgba(30, 41, 59, 0.14)');
+            gradientEnroll.addColorStop(1, 'rgba(30, 41, 59, 0.00)');
 
             new Chart(enrollCtx, {
                 type: 'line',
@@ -65,12 +71,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     datasets: [{
                         label: 'New Student Enrollments',
                         data: config.enrollData || [],
-                        borderColor: '#0f172a',
+                        borderColor: accentHex,
                         borderWidth: 2.5,
                         backgroundColor: gradientEnroll,
                         fill: true,
                         tension: 0.35,
-                        pointBackgroundColor: '#0f172a',
+                        pointBackgroundColor: accentHex,
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                         pointRadius: 4.5,
@@ -83,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#0f172a',
+                            backgroundColor: accentHex,
                             titleColor: '#ffffff',
                             bodyColor: '#ffffff',
                             padding: 10,
@@ -126,8 +132,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     datasets: [{
                         label: 'Gross Tuition ($)',
                         data: config.revData || [],
-                        backgroundColor: '#1e293b',
-                        hoverBackgroundColor: '#0f172a',
+                        backgroundColor: accentHex,
+                        hoverBackgroundColor: accentHoverHex,
                         borderRadius: 6,
                         borderSkipped: false,
                         maxBarThickness: 38
@@ -139,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#0f172a',
+                            backgroundColor: accentHex,
                             titleColor: '#ffffff',
                             bodyColor: '#ffffff',
                             padding: 10,

@@ -16,7 +16,7 @@
         <p class="text-muted small mb-0">Browse university curricula, filter by field or level, and enroll in certified
             programs.</p>
     </div>
-    {% if user.is_authenticated and user.is_instructor %}
+    {% if can_create_course %}
     <a href="{% url 'courses:course_create' %}" class="btn btn-primary">
         <span>+</span> Create New Course
     </a>
@@ -183,26 +183,45 @@
 
                                 <!-- CTA Buttons -->
                                 <div class="d-flex gap-2 flex-wrap">
-                                    {% if course.id in enrolled_course_ids %}
+                                    {% if is_admin %}
                                     <a href="{% url 'courses:course_detail' course.slug %}"
-                                        class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
-                                        Resume Learning &rarr;
+                                        class="btn btn-primary btn-sm py-1 px-3" style="font-size:0.82rem;font-weight:600;">
+                                        Manage Course &rarr;
                                     </a>
-                                    {% elif course.is_free %}
-                                    <a href="{% url 'enrollments:enroll' course.slug %}"
-                                        class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
-                                        🎁 Enroll Free
-                                    </a>
+                                    {% elif is_instructor %}
+                                        {% if course.instructor_id == user.id %}
+                                        <a href="{% url 'courses:course_detail' course.slug %}"
+                                            class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                            Manage Course &rarr;
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'courses:course_detail' course.slug %}"
+                                            class="btn btn-secondary btn-sm px-3" style="font-size:0.82rem;">
+                                            View Details
+                                        </a>
+                                        {% endif %}
                                     {% else %}
-                                    <a href="{% url 'payments:checkout' course.slug %}"
-                                        class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
-                                        Purchase &rarr;
-                                    </a>
+                                        {% if course.id in enrolled_course_ids %}
+                                        <a href="{% url 'courses:course_detail' course.slug %}"
+                                            class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                            Resume Learning &rarr;
+                                        </a>
+                                        {% elif course.is_free %}
+                                        <a href="{% url 'enrollments:enroll' course.slug %}"
+                                            class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                            🎁 Enroll Free
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'payments:checkout' course.slug %}"
+                                            class="btn btn-primary btn-sm px-4" style="font-size:0.82rem;font-weight:600;">
+                                            Purchase &rarr;
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'courses:course_detail' course.slug %}"
+                                            class="btn btn-secondary btn-sm px-3" style="font-size:0.82rem;">
+                                            View Details
+                                        </a>
                                     {% endif %}
-                                    <a href="{% url 'courses:course_detail' course.slug %}"
-                                        class="btn btn-secondary btn-sm px-3" style="font-size:0.82rem;">
-                                        View Details
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -320,7 +339,7 @@
 <!-- Section label -->
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h6 class="fw-bold text-dark mb-0" style="font-size:0.9rem;">
-        {% if search_query %}Search Results{% else %}All Courses{% endif %}
+        {% if wishlist_only %}Saved Wishlist{% elif search_query %}Search Results{% else %}All Courses{% endif %}
         <span class="text-muted fw-normal ms-1" style="font-size:0.78rem;">({{ courses.count }})</span>
     </h6>
 </div>
@@ -394,18 +413,34 @@
                         {% endif %}
                     </div>
                     <div>
-                        {% if course.id in enrolled_course_ids %}
+                        {% if is_admin %}
                         <a href="{% url 'courses:course_detail' course.slug %}"
                             class="btn btn-outline-dark btn-sm py-1 px-2 text-nowrap"
-                            style="font-size:0.68rem;border-radius:6px;">Learn &rarr;</a>
-                        {% elif course.is_free %}
-                        <a href="{% url 'enrollments:enroll' course.slug %}"
-                            class="btn btn-primary btn-sm py-1 px-2 text-nowrap"
-                            style="font-size:0.68rem;border-radius:6px;">Enroll</a>
+                            style="font-size:0.68rem;border-radius:6px;">Manage &rarr;</a>
+                        {% elif is_instructor %}
+                            {% if course.instructor_id == user.id %}
+                            <a href="{% url 'courses:course_detail' course.slug %}"
+                                class="btn btn-outline-dark btn-sm py-1 px-2 text-nowrap"
+                                style="font-size:0.68rem;border-radius:6px;">Manage &rarr;</a>
+                            {% else %}
+                            <a href="{% url 'courses:course_detail' course.slug %}"
+                                class="btn btn-outline-secondary btn-sm py-1 px-2 text-nowrap"
+                                style="font-size:0.68rem;border-radius:6px;">Details &rarr;</a>
+                            {% endif %}
                         {% else %}
-                        <a href="{% url 'payments:checkout' course.slug %}"
-                            class="btn btn-primary btn-sm py-1 px-2 text-nowrap"
-                            style="font-size:0.68rem;border-radius:6px;">Purchase &rarr;</a>
+                            {% if course.id in enrolled_course_ids %}
+                            <a href="{% url 'courses:course_detail' course.slug %}"
+                                class="btn btn-outline-dark btn-sm py-1 px-2 text-nowrap"
+                                style="font-size:0.68rem;border-radius:6px;">Learn &rarr;</a>
+                            {% elif course.is_free %}
+                            <a href="{% url 'enrollments:enroll' course.slug %}"
+                                class="btn btn-primary btn-sm py-1 px-2 text-nowrap"
+                                style="font-size:0.68rem;border-radius:6px;">Enroll</a>
+                            {% else %}
+                            <a href="{% url 'payments:checkout' course.slug %}"
+                                class="btn btn-primary btn-sm py-1 px-2 text-nowrap"
+                                style="font-size:0.68rem;border-radius:6px;">Purchase &rarr;</a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>

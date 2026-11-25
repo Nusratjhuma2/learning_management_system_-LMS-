@@ -11,176 +11,96 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261121">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=20261125">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=20261126">
+    <link rel="stylesheet" href="{% static 'css/role_themes.css' %}?v=20261126">
+    {% if user.is_authenticated and active_role_key == 'student' %}
+    <link rel="stylesheet" href="{% static 'css/student_header.css' %}?v=20261126">
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 
-<body>
+<body data-role="{{ active_role_key|default:'student' }}" class="lms-theme-{{ active_role_key|default:'student' }}{% if user.is_authenticated and active_role_key == 'student' %} lms-student-layout{% endif %}">
 
     <div class="lms-wrapper" id="lmsWrapper">
 
-        <!-- ===== LEFT SIDEBAR ===== -->
-        <aside class="lms-sidebar" id="lmsSidebar">
+        <!-- ===== FULL-WIDTH MAIN AREA (TOPBAR + CONTENT + FOOTER) ===== -->
+        <div class="lms-main {{ role_theme.pageBg|default:'bg-sky-50' }}" id="lmsMain">
 
-            <a class="sidebar-brand" href="{% url 'courses:course_list' %}">
-                <span class="brand-mark">L</span>
-                <span class="brand-name">LMS Portal</span>
-            </a>
-
-            <nav class="sidebar-nav">
-                <span class="nav-section-label">Navigation</span>
-
-                <a class="nav-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}"
-                    href="{% url 'courses:course_list' %}">
-                    <span class="nav-icon">📚</span> Courses
-                </a>
-                <a class="nav-link {% if request.resolver_match.url_name == 'instructor_list' or request.resolver_match.url_name == 'instructor_detail' %}active{% endif %}"
-                    href="{% url 'accounts:instructor_list' %}">
-                    <span class="nav-icon">👨‍🏫</span> Instructors
-                </a>
-
-                {% if user.is_authenticated %}
-                {% if user.is_instructor %}
-                <div class="dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="sidebarMyCoursesDD" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="nav-icon">🎓</span>
-                        My Courses
-                        <span class="badge ms-auto"
-                            style="background:rgba(255,255,255,0.15);color:#fff;font-size:0.58rem;min-width:18px;">{{ user.courses_created.count }}</span>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="sidebarMyCoursesDD">
-                        <li>
-                            <h6 class="dropdown-header" style="font-size:0.58rem;">AUTHORED COURSES</h6>
-                        </li>
-                        {% for my_c in user.courses_created.all %}
-                        <li>
-                            <a class="dropdown-item d-flex justify-content-between align-items-center"
-                                href="{% url 'courses:course_detail' my_c.slug %}">
-                                <span class="text-truncate me-2" style="max-width:130px;">{{ my_c.title }}</span>
-                                <span class="badge" style="background:rgba(255,255,255,0.15);font-size:0.55rem;">{{ my_c.status|title }}</span>
-                            </a>
-                        </li>
-                        {% empty %}
-                        <li><span class="dropdown-item text-muted" style="font-size:0.78rem;">No courses yet</span></li>
-                        {% endfor %}
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="{% url 'dashboard:instructor_dashboard' %}"
-                                style="font-size:0.78rem;">Instructor Studio →</a></li>
-                        <li><a class="dropdown-item fw-semibold" href="{% url 'courses:course_create' %}"
-                                style="font-size:0.78rem;">+ Create New Course</a></li>
-                    </ul>
-                </div>
-                <a class="nav-link" href="{% url 'courses:course_create' %}">
-                    <span class="nav-icon">➕</span> New Course
-                </a>
-                <a class="nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
-                    href="{% url 'payments:coupon_list' %}">
-                    <span class="nav-icon">🎟️</span> Coupons
-                </a>
-                {% else %}
-                <a class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}"
-                    href="{% url 'enrollments:my_courses' %}">
-                    <span class="nav-icon">📖</span> My Courses
-                </a>
-                <a class="nav-link {% if request.resolver_match.url_name == 'my_certificates' %}active{% endif %}"
-                    href="{% url 'enrollments:my_certificates' %}">
-                    <span class="nav-icon">🏆</span> Certificates
-                </a>
-                {% endif %}
-
-                <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
-                    href="{% url 'dashboard:index' %}">
-                    <span class="nav-icon">📊</span> Dashboard
-                </a>
-
-                {% if user.role == 'admin' or user.is_superuser %}
-                <span class="nav-section-label">Administration</span>
-                <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
-                    href="{% url 'dashboard:admin_dashboard' %}">
-                    <span class="nav-icon">⚙️</span> Admin Console
-                </a>
-                <a class="nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
-                    href="{% url 'payments:coupon_list' %}">
-                    <span class="nav-icon">🎟️</span> Coupons
-                </a>
-                {% endif %}
-                {% endif %}
-            </nav>
-
-            <!-- Sidebar Footer -->
-            {% if user.is_authenticated %}
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}"
-                    class="d-flex align-items-center gap-2 text-decoration-none mb-2 overflow-hidden">
-                    <div
-                        style="width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.82rem;color:#fff;font-weight:700;flex-shrink:0;">
-                        {{ user.username|first|upper }}
-                    </div>
-                    <div class="overflow-hidden">
-                        <div
-                            style="color:#fff;font-size:0.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:148px;">
-                            {{ user.username }}</div>
-                        <div style="color:rgba(255,255,255,0.4);font-size:0.63rem;">{{ user.get_role_display }}</div>
-                    </div>
-                </a>
-                <form action="{% url 'accounts:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm w-100"
-                        style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);font-size:0.76rem;">
-                        Sign Out
-                    </button>
-                </form>
-            </div>
+            {% if user.is_authenticated and active_role_key == 'student' %}
+            {% include 'includes/_student_header.html' %}
             {% else %}
-            <div class="sidebar-footer d-flex flex-column gap-2">
-                <a href="{% url 'accounts:login' %}" class="btn btn-sm w-100"
-                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.14);font-size:0.78rem;">Sign
-                    In</a>
-                <a href="{% url 'accounts:signup' %}" class="btn btn-sm w-100"
-                    style="background:#fff;color:#0f172a;font-size:0.78rem;font-weight:600;">Create Account</a>
-            </div>
-            {% endif %}
-
-        </aside>
-
-        <!-- Backdrop (mobile / when sidebar open over content) -->
-        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-        <!-- ===== RIGHT: TOPBAR + CONTENT ===== -->
-        <div class="lms-main" id="lmsMain">
-
-            <!-- ===== TOP BAR ===== -->
+            <!-- ===== TOP BAR (GUEST / INSTRUCTOR / ADMIN) ===== -->
             <header class="lms-topbar">
 
-                <!-- Hamburger / Toggle Button -->
-                <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle navigation"
-                    aria-label="Toggle navigation">
-                    <svg id="iconMenu" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"
-                        viewBox="0 0 24 24">
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <line x1="3" y1="12" x2="21" y2="12" />
-                        <line x1="3" y1="18" x2="21" y2="18" />
-                    </svg>
-                    <svg id="iconClose" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"
-                        viewBox="0 0 24 24" style="display:none;">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-
-                <!-- Home Button (left of search bar) -->
-                <a href="{% url 'courses:course_list' %}" class="topbar-home-btn" id="topbarHomeBtn"
-                    title="Home - Course Catalog" aria-label="Home">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"></path>
-                    </svg>
+                <!-- Brand Wordmark -->
+                <a class="topbar-brand" href="{% url 'courses:course_list' %}" title="Home - Course Catalog">
+                    <span class="topbar-brand-mark {{ role_theme.sidebarBg|default:'bg-sky-600' }}">L</span>
+                    <span class="topbar-brand-name d-none d-sm-inline">LMS Portal</span>
                 </a>
 
-                <!-- Global Search Bar with Autocomplete & Compact Floating State -->
+                <!-- Back / Forward History Controls -->
+                {% include 'includes/_nav_history_controls.html' %}
+
+                <!-- Desktop Navigation Links -->
+                <nav class="topbar-nav d-none d-lg-flex align-items-center gap-1" aria-label="Primary navigation">
+                    <a class="topbar-nav-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}"
+                        href="{% url 'courses:course_list' %}">Courses</a>
+                    <a class="topbar-nav-link {% if request.resolver_match.url_name == 'instructor_list' or request.resolver_match.url_name == 'instructor_detail' %}active{% endif %}"
+                        href="{% url 'accounts:instructor_list' %}">Instructors</a>
+
+                    {% if user.is_authenticated %}
+                        {% if user.is_instructor %}
+                            <div class="dropdown">
+                                <button type="button" class="topbar-nav-link dropdown-toggle" id="topbarMyCoursesDD"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    My Courses <span class="badge bg-light text-dark border ms-1">{{ user.courses_created.count }}</span>
+                                </button>
+                                <ul class="dropdown-menu topbar-dropdown-menu" aria-labelledby="topbarMyCoursesDD">
+                                    <li><h6 class="dropdown-header">Authored Courses</h6></li>
+                                    {% for my_c in user.courses_created.all %}
+                                        <li>
+                                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                                href="{% url 'courses:course_detail' my_c.slug %}">
+                                                <span class="text-truncate me-2" style="max-width:165px;">{{ my_c.title }}</span>
+                                                <span class="badge bg-light text-dark border">{{ my_c.status|title }}</span>
+                                            </a>
+                                        </li>
+                                    {% empty %}
+                                        <li><span class="dropdown-item text-muted">No courses yet</span></li>
+                                    {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:instructor_dashboard' %}">Instructor Studio &rarr;</a></li>
+                                    <li><a class="dropdown-item fw-semibold" href="{% url 'courses:course_create' %}">+ Create New Course</a></li>
+                                </ul>
+                            </div>
+                            <a class="topbar-nav-link {% if request.resolver_match.url_name == 'course_create' %}active{% endif %}"
+                                href="{% url 'courses:course_create' %}">New Course</a>
+                            <a class="topbar-nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
+                                href="{% url 'payments:coupon_list' %}">Coupons</a>
+                        {% elif user.role == 'admin' or user.is_superuser %}
+                            <div class="dropdown">
+                                <button type="button" class="topbar-nav-link dropdown-toggle" id="topbarAdminManageDD"
+                                    data-bs-toggle="dropdown" aria-expanded="false">Manage</button>
+                                <ul class="dropdown-menu topbar-dropdown-menu" aria-labelledby="topbarAdminManageDD">
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:admin_dashboard' %}">Admin Console</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'payments:coupon_list' %}">Manage Coupons</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'courses:course_create' %}">+ Add New Course</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/admin/">Django Admin &nearr;</a></li>
+                                </ul>
+                            </div>
+                            <a class="topbar-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+                                href="{% url 'dashboard:admin_dashboard' %}">Admin Console</a>
+                            <a class="topbar-nav-link {% if request.resolver_match.url_name == 'coupon_list' or request.resolver_match.url_name == 'coupon_create' or request.resolver_match.url_name == 'coupon_edit' %}active{% endif %}"
+                                href="{% url 'payments:coupon_list' %}">Coupons</a>
+                        {% endif %}
+
+                        <a class="topbar-nav-link {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'instructor_dashboard' %}active{% endif %}"
+                            href="{% url 'dashboard:index' %}">Dashboard</a>
+                    {% endif %}
+                </nav>
+
+                <!-- Global Search Bar with Autocomplete -->
                 <div class="topbar-search" id="topbarSearchWrap">
                     <form method="get" action="{% url 'courses:course_list' %}" id="topbarSearchForm" class="m-0"
                         autocomplete="off">
@@ -211,7 +131,6 @@
                             </button>
                         </div>
                     </form>
-                    <!-- Autocomplete Suggestions Dropdown -->
                     <div class="search-suggestions-dropdown" id="searchSuggestions" style="display:none;"
                         role="listbox"></div>
                 </div>
@@ -224,17 +143,55 @@
                         style="font-size:1.1rem;line-height:1;">
                         🔔
                     </a>
-                    <a href="{% url 'accounts:profile' %}" class="user-pill text-decoration-none"
-                        style="font-size:0.8rem;">
-                        <span>{{ user.username }}</span>
-                        <span class="badge">{{ user.get_role_display }}</span>
-                    </a>
+                    <div class="dropdown">
+                        <button type="button" class="user-pill topbar-user-pill dropdown-toggle border-slate-200"
+                            id="topbarAccountDD" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="topbar-user-avatar">{{ user.username|slice:":2"|upper }}</span>
+                            <span class="d-none d-sm-inline">{{ user.username }}</span>
+                            <span id="topbarRoleBadge"
+                                class="lms-role-badge badge rounded-pill {{ role_theme.badge|default:'bg-sky-100 text-sky-700' }}"
+                                data-role-badge="{{ active_role_key|default:'student' }}">{{ role_theme.label|default:user.get_role_display }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end topbar-dropdown-menu" aria-labelledby="topbarAccountDD">
+                            <li class="px-3 py-2 border-bottom">
+                                <div class="fw-bold text-slate-800 small">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-muted" style="font-size:0.74rem;">{{ user.email|default:user.username }}</div>
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Personal Profile</a></li>
+                            <li class="d-lg-none"><a class="dropdown-item" href="{% url 'courses:course_list' %}">Courses</a></li>
+                            <li class="d-lg-none"><a class="dropdown-item" href="{% url 'accounts:instructor_list' %}">Instructors</a></li>
+                            {% if user.is_instructor %}
+                                <li><a class="dropdown-item" href="{% url 'courses:course_create' %}">+ Create Course</a></li>
+                                <li><a class="dropdown-item" href="{% url 'payments:coupon_list' %}">Coupons</a></li>
+                            {% elif user.role == 'admin' or user.is_superuser %}
+                                <li><a class="dropdown-item" href="{% url 'dashboard:admin_dashboard' %}">Admin Console</a></li>
+                                <li><a class="dropdown-item" href="{% url 'payments:coupon_list' %}">Coupons</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="px-3 py-1">
+                                <form action="{% url 'accounts:logout' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Sign Out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                     {% else %}
+                    <div class="dropdown d-lg-none">
+                        <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="guestBrowseDD"
+                            data-bs-toggle="dropdown" aria-expanded="false">Browse</button>
+                        <ul class="dropdown-menu dropdown-menu-end topbar-dropdown-menu" aria-labelledby="guestBrowseDD">
+                            <li><a class="dropdown-item" href="{% url 'courses:course_list' %}">Courses</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:instructor_list' %}">Instructors</a></li>
+                        </ul>
+                    </div>
                     <a href="{% url 'accounts:login' %}" class="btn btn-secondary btn-sm">Sign In</a>
                     <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-sm">Create Account</a>
                     {% endif %}
                 </div>
             </header>
+            {% endif %}
 
             <!-- Main Content -->
             <main class="lms-content {% block main_class %}{% endblock %}">
@@ -283,7 +240,18 @@
     </div><!-- /.lms-wrapper -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/base.js' %}?v=20261125"></script>
+    <script>
+        window.LMS_AUTH_CONTEXT = {
+            role: "{{ active_role_key|default:'student'|escapejs }}",
+            isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
+        };
+    </script>
+    <script src="{% static 'js/config/roleThemes.js' %}?v=20261126"></script>
+    <script src="{% static 'js/base.js' %}?v=20261126"></script>
+    <script src="{% static 'js/nav_history.js' %}?v=20261126"></script>
+    {% if user.is_authenticated and active_role_key == 'student' %}
+    <script src="{% static 'js/student_header.js' %}?v=20261126"></script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 

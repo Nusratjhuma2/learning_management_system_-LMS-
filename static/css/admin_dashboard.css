@@ -12,18 +12,19 @@
     --gw-pill-bg: #f1f5f9;
 }
 
-/* Executive Gray & White Banner */
+/* Executive Banner (60% White Surface + 10% Role Accent) */
 .gw-banner {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-left: 5px solid #0f172a !important;
+    border-left: 5px solid var(--role-accent, #1E293B) !important;
     border-radius: 12px !important;
     padding: 1.75rem 2rem !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    color: #1e293b;
 }
 
 .gw-banner h1 {
-    color: #0f172a !important;
+    color: #1e293b !important;
     font-weight: 800 !important;
     letter-spacing: -0.025em !important;
 }
@@ -32,9 +33,9 @@
     color: #475569 !important;
 }
 
-/* Gray & White Navigation Pills */
+/* Navigation Pills */
 .gw-nav-wrap {
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px) !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
@@ -56,21 +57,21 @@
     text-decoration: none !important;
     color: #334155 !important;
     background-color: #f8fafc !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #e2e8f0 !important;
     transition: all 0.15s ease-in-out !important;
 }
 
 .gw-nav-pill:hover {
-    background-color: #0f172a !important;
+    background-color: var(--role-accent, #1E293B) !important;
     color: #ffffff !important;
-    border-color: #0f172a !important;
+    border-color: var(--role-accent, #1E293B) !important;
     text-decoration: none !important;
 }
 
 .gw-nav-pill.active {
-    background-color: #0f172a !important;
+    background-color: var(--role-accent, #1E293B) !important;
     color: #ffffff !important;
-    border-color: #0f172a !important;
+    border-color: var(--role-accent, #1E293B) !important;
     box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15) !important;
 }
 

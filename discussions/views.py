@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.permissions import deny_json, is_course_manager, is_student_user
 from courses.models import Course
 from enrollments.models import Enrollment
 from lessons.models import Lesson
@@ -12,16 +13,22 @@ from .forms import ReplyForm, ThreadForm
 from .models import CourseAnnouncement, DiscussionReply, DiscussionThread, Notification
 
 
+def _can_participate_in_course_discussions(user, course):
+    """Return (allowed, is_manager, is_enrolled_student) for course discussion access."""
+    is_manager = is_course_manager(user, course)
+    is_enrolled = is_student_user(user) and course.enrollments.filter(student=user).exists()
+    return (is_manager or is_enrolled), is_manager, is_enrolled
+
+
 @login_required
 def course_discussions(request, course_slug):
     """List discussion threads for a specific course."""
     course = get_object_or_404(Course, slug=course_slug)
-    is_enrolled = course.enrollments.filter(student=request.user).exists()
-    is_instructor = request.user == course.instructor or getattr(request.user, 'is_admin', False) or request.user.is_staff
+    allowed, is_instructor, is_enrolled = _can_participate_in_course_discussions(request.user, course)
 
-    if not is_enrolled and not is_instructor and course.status != Course.Status.PUBLISHED:
-        messages.error(request, "Permission denied.")
-        return redirect('courses:course_list')
+    if not allowed:
+        messages.error(request, "You must be enrolled in this course to access course discussions.")
+        return redirect('courses:course_detail', slug=course.slug)
 
     filter_type = request.GET.get('filter', 'all')
     search_query = request.GET.get('q', '').strip()
@@ -55,10 +62,9 @@ def course_discussions(request, course_slug):
 def thread_create(request, course_slug):
     """Start a new discussion thread."""
     course = get_object_or_404(Course, slug=course_slug)
-    is_enrolled = course.enrollments.filter(student=request.user).exists()
-    is_instructor = request.user == course.instructor or getattr(request.user, 'is_admin', False) or request.user.is_staff
+    allowed, is_instructor, is_enrolled = _can_participate_in_course_discussions(request.user, course)
 
-    if not is_enrolled and not is_instructor:
+    if not allowed:
         messages.error(request, "You must be enrolled to participate in discussions.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -102,8 +108,11 @@ def thread_detail(request, pk):
         pk=pk,
     )
     course = thread.course
-    is_enrolled = course.enrollments.filter(student=request.user).exists()
-    is_instructor = request.user == course.instructor or getattr(request.user, 'is_admin', False) or request.user.is_staff
+    allowed, is_instructor, is_enrolled = _can_participate_in_course_discussions(request.user, course)
+
+    if not allowed:
+        messages.error(request, "You must be enrolled in this course to view this discussion.")
+        return redirect('courses:course_detail', slug=course.slug)
 
     replies = thread.replies.select_related('author').all()
     reply_form = ReplyForm()
@@ -123,10 +132,9 @@ def reply_create(request, pk):
     """Post a reply to a thread."""
     thread = get_object_or_404(DiscussionThread.objects.select_related('course'), pk=pk)
     course = thread.course
-    is_instructor = request.user == course.instructor or getattr(request.user, 'is_admin', False) or request.user.is_staff
-    is_enrolled = course.enrollments.filter(student=request.user).exists()
+    allowed, is_instructor, is_enrolled = _can_participate_in_course_discussions(request.user, course)
 
-    if not is_instructor and not is_enrolled:
+    if not allowed:
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -136,7 +144,7 @@ def reply_create(request, pk):
             reply = form.save(commit=False)
             reply.thread = thread
             reply.author = request.user
-            reply.is_instructor_reply = (request.user == course.instructor or request.user.is_staff)
+            reply.is_instructor_reply = is_instructor
             reply.save()
 
             # Notify author if someone else replied
@@ -155,12 +163,14 @@ def reply_create(request, pk):
 @login_required
 def toggle_resolve(request, pk):
     """Mark a thread as resolved or unresolved."""
-    thread = get_object_or_404(DiscussionThread, pk=pk)
-    if request.user == thread.author or request.user == thread.course.instructor or request.user.is_staff:
+    thread = get_object_or_404(DiscussionThread.objects.select_related('course'), pk=pk)
+    if request.user == thread.author or is_course_manager(request.user, thread.course):
         thread.is_resolved = not thread.is_resolved
         thread.save(update_fields=['is_resolved'])
         status_str = "resolved" if thread.is_resolved else "open"
         messages.success(request, f"Thread marked as {status_str}.")
+    else:
+        messages.error(request, "Permission denied.")
     return redirect('discussions:thread_detail', pk=thread.pk)
 
 
@@ -168,7 +178,11 @@ def toggle_resolve(request, pk):
 @require_POST
 def create_thread_api(request, lesson_id):
     """AJAX endpoint to create a Q&A thread inside a lesson detail view."""
-    lesson = get_object_or_404(Lesson, pk=lesson_id)
+    lesson = get_object_or_404(Lesson.objects.select_related('course'), pk=lesson_id)
+    allowed, _, _ = _can_participate_in_course_discussions(request.user, lesson.course)
+    if not allowed:
+        return deny_json("Enrollment or course management permissions required.")
+
     try:
         data = json.loads(request.body.decode('utf-8'))
         title = data.get('title', '').strip()
@@ -209,6 +223,10 @@ def create_thread_api(request, lesson_id):
 def reply_thread_api(request, thread_id):
     """AJAX endpoint to reply to a thread."""
     thread = get_object_or_404(DiscussionThread.objects.select_related('course'), pk=thread_id)
+    allowed, is_instructor, _ = _can_participate_in_course_discussions(request.user, thread.course)
+    if not allowed:
+        return deny_json("Enrollment or course management permissions required.")
+
     try:
         data = json.loads(request.body.decode('utf-8'))
         body = data.get('body', '').strip()
@@ -217,7 +235,6 @@ def reply_thread_api(request, thread_id):
         if not body:
             return JsonResponse({'status': 'error', 'message': 'Reply content cannot be empty.'}, status=400)
 
-        is_instructor = request.user == thread.course.instructor or request.user.is_staff
         reply = DiscussionReply.objects.create(
             thread=thread,
             author=request.user,
@@ -251,9 +268,9 @@ def reply_thread_api(request, thread_id):
 
 @login_required
 def create_announcement(request, course_slug):
-    """Instructor broadcasts an announcement to all course students."""
+    """Instructor or admin broadcasts an announcement to all course students."""
     course = get_object_or_404(Course, slug=course_slug)
-    if request.user != course.instructor and not request.user.is_staff:
+    if not is_course_manager(request.user, course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 

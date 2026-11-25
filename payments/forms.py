@@ -1,4 +1,5 @@
 from django import forms
+from accounts.permissions import is_admin_user
 from courses.models import Course
 from .models import Coupon
 
@@ -43,7 +44,7 @@ class CouponForm(forms.ModelForm):
             self.initial['valid_until'] = self.instance.valid_until.strftime('%Y-%m-%dT%H:%M')
 
         if user:
-            is_admin = getattr(user, 'is_admin', False) or user.is_staff or user.is_superuser
+            is_admin = is_admin_user(user)
             if is_admin:
                 self.fields['course'].queryset = Course.objects.all().order_by('title')
                 self.fields['course'].empty_label = "All Courses (Site-Wide Coupon)"
@@ -69,7 +70,7 @@ class CouponForm(forms.ModelForm):
     def clean_course(self):
         course = self.cleaned_data.get('course')
         if self.user:
-            is_admin = getattr(self.user, 'is_admin', False) or self.user.is_staff or self.user.is_superuser
+            is_admin = is_admin_user(self.user)
             if not is_admin:
                 if not course:
                     raise forms.ValidationError("Instructors must assign coupons to one of their specific courses.")

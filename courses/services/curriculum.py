@@ -3,6 +3,7 @@ from django.db.models import Max
 from django.urls import reverse
 from django.utils import timezone
 
+from accounts.permissions import is_course_manager, is_student_user
 from enrollments.models import Enrollment
 from lessons.models import LessonProgress
 from quizzes.models import QuizAttempt
@@ -20,15 +21,8 @@ def _format_duration(seconds):
 
 
 def _user_bypasses_locks(course, user):
-    """Course author, staff, admins, and superusers bypass student progression locks."""
-    if not user or not user.is_authenticated:
-        return False
-    return bool(
-        user == course.instructor
-        or user.is_superuser
-        or user.is_staff
-        or getattr(user, 'is_admin', False)
-    )
+    """Course author and platform administrators bypass student progression locks."""
+    return is_course_manager(user, course)
 
 
 def _get_module_completion_counts(module, completed_lesson_ids, passed_quiz_ids):
@@ -137,9 +131,10 @@ def build_course_curriculum_state(course, user):
 
     is_authenticated = bool(user and user.is_authenticated)
     is_privileged = _user_bypasses_locks(course, user)
+    is_student = is_student_user(user)
     enrollment = (
         Enrollment.objects.filter(student=user, course=course).first()
-        if is_authenticated else None
+        if is_student else None
     )
     is_enrolled = bool(enrollment)
     has_course_access = is_enrolled or is_privileged

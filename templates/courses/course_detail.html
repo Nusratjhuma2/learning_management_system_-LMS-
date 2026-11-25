@@ -138,7 +138,7 @@
                 </div>
             {% endif %}
 
-            {% if is_enrolled or has_purchased or user == course.instructor or user.is_superuser %}
+            {% if is_enrolled or has_purchased or can_manage_course %}
                 <!-- Overall Curriculum Progress Bar -->
                 <div class="curriculum-progress-panel mb-3">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
@@ -327,7 +327,7 @@
                                                             {% if les.file_url %}
                                                                 <a href="{{ les.file_url }}" class="btn btn-outline-secondary btn-sm" download>Resource</a>
                                                             {% endif %}
-                                                            {% if not les.is_completed %}
+                                                            {% if not les.is_completed and is_student %}
                                                                 <button type="button"
                                                                         class="btn btn-outline-dark btn-sm btn-mark-lesson-complete"
                                                                         data-lesson-id="{{ les.id }}"
@@ -388,21 +388,27 @@
                 {% endif %}
 
             {% else %}
-                <!-- LOCKED: Shown before purchasing the course -->
+                <!-- LOCKED: Shown before enrolling or in non-owner faculty preview -->
                 <div class="p-4 bg-light rounded-3 border text-center mb-4">
                     <div class="display-6 mb-2">&#128274;</div>
                     <h5 class="fw-bold text-dark mb-1">Course Modules Locked</h5>
-                    <p class="text-muted small mb-3">
-                        Curriculum content, lecture videos, interactive notes, and assessments are protected. Purchase or enroll in this course to unlock all modules.
-                    </p>
-                    {% if course.is_free %}
-                        <a href="{% url 'enrollments:enroll' course.slug %}" class="btn btn-primary btn-sm px-4 py-2">
-                            Enroll Free to Unlock Content &rarr;
-                        </a>
+                    {% if is_instructor %}
+                        <p class="text-muted small mb-0">
+                            Curriculum content, lecture videos, and assessments belong to another instructor. Faculty accounts have read-only overview access here.
+                        </p>
                     {% else %}
-                        <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-primary btn-sm px-4 py-2">
-                            Purchase Course to Unlock &bull; ${{ course.effective_price }} &rarr;
-                        </a>
+                        <p class="text-muted small mb-3">
+                            Curriculum content, lecture videos, interactive notes, and assessments are protected. Purchase or enroll in this course to unlock all modules.
+                        </p>
+                        {% if course.is_free %}
+                            <a href="{% url 'enrollments:enroll' course.slug %}" class="btn btn-primary btn-sm px-4 py-2">
+                                Enroll Free to Unlock Content &rarr;
+                            </a>
+                        {% else %}
+                            <a href="{% url 'payments:checkout' course.slug %}" class="btn btn-primary btn-sm px-4 py-2">
+                                Purchase Course to Unlock &bull; ${{ course.effective_price }} &rarr;
+                            </a>
+                        {% endif %}
                     {% endif %}
                 </div>
 
@@ -470,7 +476,7 @@
             </div>
 
             <!-- Write Review Form (Enrolled Students Only) -->
-            {% if is_enrolled %}
+            {% if is_enrolled and is_student %}
                 <div class="p-3 bg-light rounded-3 border mb-4">
                     <h6 class="fw-bold text-dark mb-2">Post Your Course Feedback</h6>
                     <form method="post" action="{% url 'courses:add_review' course.slug %}">
@@ -570,7 +576,7 @@
             </div>
 
             {% if user.is_authenticated %}
-                {% if user.role == 'admin' or user.is_superuser %}
+                {% if is_admin %}
                     <!-- Platform Administrator Control Panel -->
                     <div class="p-3 bg-light rounded-3 border mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -622,6 +628,19 @@
                         </a>
                         <a href="{% url 'courses:course_delete' course.slug %}" class="btn btn-danger">
                             Delete Course
+                        </a>
+                    </div>
+                {% elif is_instructor %}
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <span class="badge bg-dark text-white mb-2">Faculty View</span>
+                        <p class="text-muted small mb-0">This course is taught by Prof. {{ course.instructor.get_full_name|default:course.instructor.username }}. Instructor accounts cannot purchase or enroll in courses as students.</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:instructor_detail' course.instructor.username %}" class="btn btn-outline-dark btn-sm">
+                            View Instructor Profile &rarr;
+                        </a>
+                        <a href="{% url 'dashboard:instructor_dashboard' %}" class="btn btn-secondary btn-sm">
+                            Return to Instructor Studio
                         </a>
                     </div>
                 {% elif is_enrolled %}

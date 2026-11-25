@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from accounts.permissions import deny_json, deny_role_redirect, is_course_manager, is_student_user
 from courses.models import Course
 from courses.services.curriculum import is_quiz_accessible_by_module
 from .forms import QuestionForm, QuizForm
@@ -18,27 +19,32 @@ from .models import Choice, Question, Quiz, QuizAttempt, QuizAttemptAnswer
 def quiz_detail(request, pk):
     """
     Displays the quiz lobby or the active proctored quiz attempt.
-    Enforces enrollment, attempt limits, and sets up anti-cheat session.
+    Enforces student enrollment, attempt limits, and sets up anti-cheat session.
     """
     quiz = get_object_or_404(
         Quiz.objects.select_related('course', 'course__instructor').prefetch_related('questions__choices'),
         pk=pk,
     )
     course = quiz.course
-    is_enrolled = course.enrollments.filter(student=request.user).exists()
-    is_instructor = request.user == course.instructor or getattr(request.user, 'is_admin', False) or request.user.is_staff
+    is_manager = is_course_manager(request.user, course)
+    is_student = is_student_user(request.user)
+    is_enrolled = is_student and course.enrollments.filter(student=request.user).exists()
 
-    if not is_enrolled and not is_instructor:
+    if not is_enrolled and not is_manager:
         messages.error(request, "You must be enrolled in this course to access this assessment.")
         return redirect('courses:course_detail', slug=course.slug)
 
-    if not is_instructor:
+    if not is_manager:
         quiz_unlocked, lock_reason = is_quiz_accessible_by_module(quiz, request.user)
         if not quiz_unlocked:
             messages.warning(request, lock_reason or "This assessment is currently locked.")
             return redirect('courses:course_detail', slug=course.slug)
 
-    past_attempts = QuizAttempt.objects.filter(quiz=quiz, student=request.user).order_by('-started_at')
+    past_attempts = (
+        QuizAttempt.objects.filter(quiz=quiz, student=request.user).order_by('-started_at')
+        if is_enrolled
+        else QuizAttempt.objects.none()
+    )
     attempt_count = past_attempts.count()
     has_passed = past_attempts.filter(passed=True).exists()
     attempts_exhausted = (quiz.max_attempts > 0 and attempt_count >= quiz.max_attempts)
@@ -46,6 +52,14 @@ def quiz_detail(request, pk):
     # Check if student clicked "Start Assessment"
     action = request.GET.get('action')
     if action == 'start' or request.method == 'POST':
+        if not is_enrolled:
+            return deny_role_redirect(
+                request,
+                "Only enrolled students can take assessments.",
+                'quizzes:quiz_detail',
+                pk=pk,
+            )
+
         if attempts_exhausted:
             messages.error(request, f"You have reached the maximum allowed attempts ({quiz.max_attempts}) for this assessment.")
             return redirect('quizzes:quiz_detail', pk=pk)
@@ -106,7 +120,8 @@ def quiz_detail(request, pk):
     return render(request, 'quizzes/quiz_detail.html', {
         'quiz': quiz,
         'course': course,
-        'is_instructor': is_instructor,
+        'is_instructor': is_manager,
+        'is_enrolled': is_enrolled,
         'past_attempts': past_attempts,
         'attempt_count': attempt_count,
         'has_passed': has_passed,
@@ -120,12 +135,28 @@ def quiz_submit(request, pk):
     """
     Grades student quiz submission supporting Single Choice, Multiple Choice,
     True/False, and Short Answer question types.
-    Enforces anti-cheat tab-switch disqualification.
+    Enforces student enrollment, module unlock, and anti-cheat tab-switch disqualification.
     """
     quiz = get_object_or_404(
-        Quiz.objects.prefetch_related('questions__choices'),
+        Quiz.objects.select_related('course').prefetch_related('questions__choices'),
         pk=pk,
     )
+    course = quiz.course
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only enrolled students can submit quiz attempts.",
+            'quizzes:quiz_detail',
+            pk=pk,
+        )
+    if not course.enrollments.filter(student=request.user).exists():
+        messages.error(request, "You must be enrolled in this course to submit this assessment.")
+        return redirect('courses:course_detail', slug=course.slug)
+
+    quiz_unlocked, lock_reason = is_quiz_accessible_by_module(quiz, request.user)
+    if not quiz_unlocked:
+        messages.warning(request, lock_reason or "This assessment is currently locked.")
+        return redirect('courses:course_detail', slug=course.slug)
 
     attempt_id = request.POST.get('attempt_id')
     now = timezone.now()
@@ -252,6 +283,10 @@ def quiz_submit(request, pk):
 @require_POST
 def log_tab_switch(request, pk):
     """Real-time AJAX tracking of student tab switch events during proctoring."""
+    quiz = get_object_or_404(Quiz.objects.select_related('course'), pk=pk)
+    if not is_student_user(request.user) or not quiz.course.enrollments.filter(student=request.user).exists():
+        return deny_json("Enrolled student account required.")
+
     try:
         data = json.loads(request.body.decode('utf-8'))
         attempt_id = data.get('attempt_id')
@@ -259,7 +294,7 @@ def log_tab_switch(request, pk):
         is_disqualified = bool(data.get('is_disqualified', False))
 
         if attempt_id:
-            attempt = QuizAttempt.objects.filter(pk=attempt_id, student=request.user).first()
+            attempt = QuizAttempt.objects.filter(pk=attempt_id, quiz=quiz, student=request.user).first()
             if attempt:
                 attempt.tab_switch_count = tab_switches
                 if is_disqualified or tab_switches >= 3:
@@ -284,8 +319,8 @@ def quiz_result(request, attempt_id):
         pk=attempt_id,
     )
 
-    is_author = request.user == attempt.student
-    is_instructor = request.user == attempt.quiz.course.instructor or getattr(request.user, 'is_admin', False) or request.user.is_staff
+    is_author = is_student_user(request.user) and request.user == attempt.student
+    is_instructor = is_course_manager(request.user, attempt.quiz.course)
 
     if not is_author and not is_instructor:
         messages.error(request, "Permission denied.")
@@ -308,9 +343,9 @@ def quiz_result(request, attempt_id):
 
 @login_required
 def quiz_create(request, course_slug):
-    """Instructor creates a new quiz."""
+    """Instructor or admin creates a new quiz."""
     course = get_object_or_404(Course, slug=course_slug)
-    if request.user != course.instructor and not (getattr(request.user, 'is_admin', False) or request.user.is_staff):
+    if not is_course_manager(request.user, course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -334,9 +369,9 @@ def quiz_create(request, course_slug):
 
 @login_required
 def quiz_edit(request, pk):
-    """Instructor edits a quiz and manages its questions."""
+    """Instructor or admin edits a quiz and manages its questions."""
     quiz = get_object_or_404(Quiz.objects.select_related('course'), pk=pk)
-    if request.user != quiz.course.instructor and not (getattr(request.user, 'is_admin', False) or request.user.is_staff):
+    if not is_course_manager(request.user, quiz.course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=quiz.course.slug)
 
@@ -360,10 +395,10 @@ def quiz_edit(request, pk):
 
 @login_required
 def quiz_delete(request, pk):
-    """Instructor deletes a quiz."""
-    quiz = get_object_or_404(Quiz, pk=pk)
+    """Instructor or admin deletes a quiz."""
+    quiz = get_object_or_404(Quiz.objects.select_related('course'), pk=pk)
     course = quiz.course
-    if request.user != course.instructor and not (getattr(request.user, 'is_admin', False) or request.user.is_staff):
+    if not is_course_manager(request.user, course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -377,9 +412,9 @@ def quiz_delete(request, pk):
 
 @login_required
 def question_create(request, quiz_pk):
-    """Instructor adds a question to a quiz."""
+    """Instructor or admin adds a question to a quiz."""
     quiz = get_object_or_404(Quiz.objects.select_related('course'), pk=quiz_pk)
-    if request.user != quiz.course.instructor and not (getattr(request.user, 'is_admin', False) or request.user.is_staff):
+    if not is_course_manager(request.user, quiz.course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=quiz.course.slug)
 
@@ -430,10 +465,10 @@ def question_create(request, quiz_pk):
 
 @login_required
 def question_delete(request, pk):
-    """Instructor deletes a question."""
+    """Instructor or admin deletes a question."""
     question = get_object_or_404(Question.objects.select_related('quiz', 'quiz__course'), pk=pk)
     quiz = question.quiz
-    if request.user != quiz.course.instructor and not (getattr(request.user, 'is_admin', False) or request.user.is_staff):
+    if not is_course_manager(request.user, quiz.course):
         messages.error(request, "Permission denied.")
         return redirect('quizzes:quiz_edit', pk=quiz.pk)
 
@@ -445,9 +480,9 @@ def question_delete(request, pk):
 
 @login_required
 def quiz_attempts_list(request, pk):
-    """Instructor views all student attempts and performance for a quiz."""
+    """Instructor or admin views all student attempts and performance for a quiz."""
     quiz = get_object_or_404(Quiz.objects.select_related('course'), pk=pk)
-    if request.user != quiz.course.instructor and not (getattr(request.user, 'is_admin', False) or request.user.is_staff):
+    if not is_course_manager(request.user, quiz.course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=quiz.course.slug)
 

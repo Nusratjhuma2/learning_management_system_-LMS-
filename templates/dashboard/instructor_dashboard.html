@@ -3,19 +3,23 @@
 
 {% block title %}Instructor Studio | LMS Faculty Portal{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/instructor_dashboard.css' %}?v=20261126">
+{% endblock %}
+
 {% block main_class %}container-fluid px-lg-4 px-xl-5 my-4{% endblock %}
 
 {% block content %}
 <div class="instructor-dashboard-container">
-        <!-- Instructor Studio Banner (Gray & White Palette) -->
-        <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 bg-white" style="border: 1px solid #e2e8f0 !important; border-left: 5px solid #0f172a !important; border-radius: 12px;">
+        <!-- Instructor Studio Banner (60% White Surface + Role Accent) -->
+        <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 bg-white instructor-banner">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-dark text-white px-2 py-1">INSTRUCTOR STUDIO</span>
+                        <span class="lms-role-badge badge rounded-pill {{ role_theme.badge|default:'bg-emerald-100 text-emerald-700' }}">INSTRUCTOR STUDIO</span>
                         <span class="badge bg-light text-dark border px-2 py-1">Faculty Academic Console</span>
                     </div>
-                    <h2 class="h3 fw-bold text-dark mb-1">Welcome, <a href="{% url 'accounts:profile' %}" class="text-dark text-decoration-none border-bottom border-dark" title="View Personal Profile">{{ request.user.get_full_name|default:request.user.username }}</a></h2>
+                    <h2 class="h3 fw-bold text-slate-800 mb-1">Welcome, <a href="{% url 'accounts:profile' %}" class="instructor-profile-link" title="View Personal Profile">{{ request.user.get_full_name|default:request.user.username }}</a></h2>
                     <p class="text-muted small mb-0">Course delivery, grading queue, assessment oversight, and student Q&amp;A.</p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">

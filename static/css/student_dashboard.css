@@ -4,10 +4,11 @@
 .student-welcome-banner {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-left: 5px solid #0f172a !important;
+    border-left: 5px solid var(--role-accent, #0284C7) !important;
     border-radius: 14px !important;
     padding: 1.5rem 1.75rem !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    color: #1e293b;
 }
 
 /* Student Avatar Box with Profile Edit Link */
@@ -17,7 +18,7 @@
     min-width: 62px;
     min-height: 62px;
     border-radius: 50%;
-    background-color: #0f172a;
+    background-color: var(--role-accent, #0284C7);
     color: #ffffff;
     display: inline-flex;
     align-items: center;
@@ -33,7 +34,7 @@
 
 .student-avatar-box:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 4px 12px var(--role-accent-soft, rgba(2, 132, 199, 0.22));
     color: #ffffff;
 }
 
@@ -73,13 +74,13 @@
 }
 
 .student-profile-link:hover {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
+    color: var(--role-accent, #0284C7);
+    border-bottom-color: var(--role-accent, #0284C7);
 }
 
 .student-profile-link:hover .profile-arrow-icon {
     transform: translate(2px, -2px);
-    color: #2563eb;
+    color: var(--role-accent, #0284C7);
 }
 
 .profile-arrow-icon {
@@ -144,9 +145,9 @@
 }
 
 .btn-filter-tab.active {
-    background: #0f172a;
+    background: var(--role-button-bg, #0284C7);
     color: #ffffff;
-    border-color: #0f172a;
+    border-color: var(--role-button-bg, #0284C7);
 }
 
 /* Card Hover Elevation */

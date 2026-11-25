@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.permissions import deny_role_redirect, is_student_user
 from courses.models import Course
 from .models import Enrollment, Certificate, Badge, StudentBadge
 from .services.certificate_service import generate_certificate_pdf, update_enrollment_progress
@@ -14,7 +15,15 @@ from .services.certificate_service import generate_certificate_pdf, update_enrol
 @login_required
 def enroll(request, course_slug):
     """Enroll the current student in a course after checking prerequisites."""
-    course = get_object_or_404(Course, slug=course_slug, status=Course.Status.PUBLISHED)
+    course = get_object_or_404(Course, slug=course_slug, status=Course.Status.PUBLISHED, is_blocked=False)
+
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only student accounts can enroll in courses.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
 
     # Check course prerequisites
     prereqs = course.prerequisite_requirements.select_related('required_course').all()
@@ -55,6 +64,13 @@ def enroll(request, course_slug):
 def unenroll(request, course_slug):
     """Remove enrollment from a course."""
     course = get_object_or_404(Course, slug=course_slug)
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only student accounts can manage course enrollments.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
     Enrollment.objects.filter(student=request.user, course=course).delete()
     messages.info(request, f"You have unenrolled from '{course.title}'.")
     return redirect('courses:course_detail', slug=course.slug)
@@ -62,7 +78,13 @@ def unenroll(request, course_slug):
 
 @login_required
 def my_courses(request):
-    """Show courses the current user is enrolled in with progress indicators."""
+    """Show courses the current student is enrolled in with progress indicators."""
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "My Enrolled Courses is available only for student accounts.",
+        )
+
     enrollments = Enrollment.objects.filter(
         student=request.user
     ).select_related('course', 'course__instructor').prefetch_related('course__lessons')
@@ -118,6 +140,12 @@ def download_certificate(request, certificate_uid):
 @login_required
 def my_certificates(request):
     """Student portal view for earned certificates, badges, and gamification stats."""
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Certificates and badges are available only for student accounts.",
+        )
+
     certificates = Certificate.objects.filter(
         enrollment__student=request.user,
     ).select_related('enrollment__course', 'enrollment__course__instructor').order_by('-issued_at')

@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from accounts.models import SecurityAuditLog
+from accounts.permissions import deny_json, deny_role_redirect, is_course_manager, is_student_user
 from accounts.signals import get_client_ip
 from courses.models import Course
 from courses.services.curriculum import build_course_curriculum_state, is_lesson_accessible_by_module
@@ -38,12 +39,21 @@ def get_hls_signer():
 
 
 def check_lesson_access(user, lesson):
-    """Verify if a user has permission to access the lesson. Only enrolled students, the instructor, or superuser can access."""
+    """Verify if a user can access the lesson (enrolled student, course instructor, or admin)."""
     if not user.is_authenticated:
         return False
-    if user == lesson.course.instructor or user.is_superuser:
+    if is_course_manager(user, lesson.course):
         return True
-    return Enrollment.objects.filter(student=user, course=lesson.course).exists()
+    return is_student_user(user) and Enrollment.objects.filter(student=user, course=lesson.course).exists()
+
+
+def _check_student_lesson_action(user, lesson):
+    """Verify user is an enrolled student (not instructor/admin) for student learning actions."""
+    if not is_student_user(user):
+        return False, "Only enrolled student accounts can perform learning progress actions."
+    if not Enrollment.objects.filter(student=user, course=lesson.course).exists():
+        return False, "Enrollment required."
+    return True, None
 
 
 @login_required
@@ -65,8 +75,16 @@ def lesson_detail(request, course_slug, pk):
         messages.warning(request, lock_reason or "This lesson is currently locked.")
         return redirect('courses:course_detail', slug=course_slug)
 
-    # Get or create student's lesson progress
-    progress, _ = LessonProgress.objects.get_or_create(student=request.user, lesson=lesson)
+    is_student = is_student_user(request.user)
+    is_instructor_or_admin = is_course_manager(request.user, lesson.course)
+
+    # Track LessonProgress and notes exclusively for student accounts
+    if is_student:
+        progress, _ = LessonProgress.objects.get_or_create(student=request.user, lesson=lesson)
+        notes = lesson.notes.filter(student=request.user)
+    else:
+        progress = None
+        notes = LessonNote.objects.none()
 
     # Automatically trigger HLS / metadata processing if raw_video uploaded and not yet processed
     if lesson.raw_video and lesson.transcode_status == Lesson.TranscodeStatus.NONE and not lesson.hls_playlist_relpath:
@@ -100,23 +118,19 @@ def lesson_detail(request, course_slug, pk):
         for seg in transcript_segments
     ]
 
-    is_instructor_or_admin = (
-        request.user == lesson.course.instructor
-        or request.user.is_superuser
-        or request.user.is_staff
-        or getattr(request.user, 'is_admin', False)
-    )
-
-    notes = lesson.notes.filter(student=request.user)
     all_lessons = lesson.course.lessons.select_related('module').order_by('order', 'id')
 
     # Calculate completion percent for student in this course
     total_course_lessons = all_lessons.count()
-    completed_lessons = LessonProgress.objects.filter(
-        student=request.user,
-        lesson__course=lesson.course,
-        is_completed=True,
-    ).count()
+    completed_lessons = (
+        LessonProgress.objects.filter(
+            student=request.user,
+            lesson__course=lesson.course,
+            is_completed=True,
+        ).count()
+        if is_student
+        else 0
+    )
 
     return render(
         request,
@@ -132,6 +146,7 @@ def lesson_detail(request, course_slug, pk):
             'transcript_cues_json': json.dumps(transcript_cues),
             'video_qualities': lesson.video_qualities or [],
             'is_instructor_or_admin': is_instructor_or_admin,
+            'is_student': is_student,
             'client_ip': get_client_ip(request) or '127.0.0.1',
             'completed_count': completed_lessons,
             'total_lessons': total_course_lessons,
@@ -424,8 +439,9 @@ def lesson_heartbeat_api(request, lesson_id):
     Increments watched_seconds safely and completes lesson when >= min_watch_percent.
     """
     lesson = get_object_or_404(Lesson.objects.select_related('course', 'module'), pk=lesson_id)
-    if not check_lesson_access(request.user, lesson):
-        return JsonResponse({'status': 'forbidden', 'message': 'Enrollment required.'}, status=403)
+    ok, err_msg = _check_student_lesson_action(request.user, lesson)
+    if not ok:
+        return deny_json(err_msg)
 
     allowed, lock_reason = is_lesson_accessible_by_module(lesson, request.user)
     if not allowed:
@@ -473,8 +489,9 @@ def lesson_heartbeat_api(request, lesson_id):
 def mark_lesson_completed_api(request, lesson_id):
     """Explicitly marks a lesson as completed (for embedded YouTube videos, readings, or PDFs)."""
     lesson = get_object_or_404(Lesson.objects.select_related('course', 'module'), pk=lesson_id)
-    if not check_lesson_access(request.user, lesson):
-        return JsonResponse({'status': 'forbidden', 'message': 'Enrollment required.'}, status=403)
+    ok, err_msg = _check_student_lesson_action(request.user, lesson)
+    if not ok:
+        return deny_json(err_msg)
 
     allowed, lock_reason = is_lesson_accessible_by_module(lesson, request.user)
     if not allowed:
@@ -524,8 +541,12 @@ def log_security_violation_api(request):
 @login_required
 @require_POST
 def lesson_save_note_api(request, lesson_id):
-    """Save a private study note timestamped to the lesson video."""
-    lesson = get_object_or_404(Lesson, pk=lesson_id)
+    """Save a private study note timestamped to the lesson video (enrolled students only)."""
+    lesson = get_object_or_404(Lesson.objects.select_related('course'), pk=lesson_id)
+    ok, err_msg = _check_student_lesson_action(request.user, lesson)
+    if not ok:
+        return deny_json(err_msg)
+
     try:
         data = json.loads(request.body)
         timestamp = int(data.get('timestamp_seconds', 0))
@@ -560,13 +581,7 @@ def generate_transcript_api(request, lesson_id):
     transcript duration length with the custom web player.
     """
     lesson = get_object_or_404(Lesson.objects.select_related('course'), pk=lesson_id)
-    is_privileged = (
-        request.user == lesson.course.instructor
-        or request.user.is_superuser
-        or request.user.is_staff
-        or getattr(request.user, 'is_admin', False)
-    )
-    if not is_privileged:
+    if not is_course_manager(request.user, lesson.course):
         return JsonResponse({'status': 'forbidden', 'message': 'Permission denied.'}, status=403)
 
     try:
@@ -617,11 +632,14 @@ def generate_transcript_api(request, lesson_id):
 @login_required
 def lesson_create(request, course_slug):
     """Add a lesson to a course (course author or platform administrator)."""
-    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
-    if is_admin:
-        course = get_object_or_404(Course, slug=course_slug)
-    else:
-        course = get_object_or_404(Course, slug=course_slug, instructor=request.user)
+    course = get_object_or_404(Course, slug=course_slug)
+    if not is_course_manager(request.user, course):
+        return deny_role_redirect(
+            request,
+            "Permission denied. Only the course instructor or an administrator can add lessons.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
 
     if request.method == 'POST':
         form = LessonForm(request.POST, request.FILES)
@@ -649,11 +667,14 @@ def lesson_create(request, course_slug):
 @login_required
 def lesson_update(request, course_slug, pk):
     """Edit a lesson (course author or platform administrator)."""
-    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
-    if is_admin:
-        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug)
-    else:
-        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug, course__instructor=request.user)
+    lesson = get_object_or_404(Lesson.objects.select_related('course'), pk=pk, course__slug=course_slug)
+    if not is_course_manager(request.user, lesson.course):
+        return deny_role_redirect(
+            request,
+            "Permission denied. Only the course instructor or an administrator can edit lessons.",
+            'courses:course_detail',
+            slug=course_slug,
+        )
 
     if request.method == 'POST':
         form = LessonForm(request.POST, request.FILES, instance=lesson)
@@ -678,11 +699,14 @@ def lesson_update(request, course_slug, pk):
 @login_required
 def lesson_delete(request, course_slug, pk):
     """Delete a lesson (course author or platform administrator)."""
-    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
-    if is_admin:
-        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug)
-    else:
-        lesson = get_object_or_404(Lesson, pk=pk, course__slug=course_slug, course__instructor=request.user)
+    lesson = get_object_or_404(Lesson.objects.select_related('course'), pk=pk, course__slug=course_slug)
+    if not is_course_manager(request.user, lesson.course):
+        return deny_role_redirect(
+            request,
+            "Permission denied. Only the course instructor or an administrator can delete lessons.",
+            'courses:course_detail',
+            slug=course_slug,
+        )
 
     course = lesson.course
     if request.method == 'POST':

@@ -1,0 +1,603 @@
+/* ==========================================================================
+   DYNAMIC ROLE-BASED COLOR THEME SYSTEM (60-30-10 DESIGN RULE)
+   Matches static/js/config/roleThemes.js & dashboard/themes.py
+   - 30% Main Content Area: Role pageBg (#F0F9FF / #ECFDF5 / #F1F5F9)
+   - 60% Cards, Tables & Modals: White (#FFFFFF), Slate-800 (#1E293B), Slate-200 (#E2E8F0)
+   - 10% Navigation & Primary Actions: Role Accent (Sky-600 / Emerald-600 / Slate-800)
+   ========================================================================== */
+
+:root,
+:root[data-role="student"],
+body[data-role="student"] {
+    --role-page-bg: #F0F9FF;
+    --role-sidebar-bg: #0284C7;
+    --role-sidebar-hover: rgba(255, 255, 255, 0.14);
+    --role-sidebar-active: rgba(255, 255, 255, 0.24);
+    --role-sidebar-border: rgba(255, 255, 255, 0.20);
+    --role-badge-bg: #E0F2FE;
+    --role-badge-text: #0369A1;
+    --role-badge-border: #BAE6FD;
+    --role-button-bg: #0284C7;
+    --role-button-hover: #0369A1;
+    --role-button-active: #075985;
+    --role-accent: #0284C7;
+    --role-accent-soft: rgba(2, 132, 199, 0.12);
+
+    --sidebar-bg: var(--role-sidebar-bg);
+    --color-canvas: var(--role-page-bg);
+    --color-primary: var(--role-button-bg);
+    --color-primary-hover: var(--role-button-hover);
+    --color-primary-active: var(--role-button-active);
+}
+
+:root[data-role="instructor"],
+body[data-role="instructor"] {
+    --role-page-bg: #ECFDF5;
+    --role-sidebar-bg: #059669;
+    --role-sidebar-hover: rgba(255, 255, 255, 0.14);
+    --role-sidebar-active: rgba(255, 255, 255, 0.24);
+    --role-sidebar-border: rgba(255, 255, 255, 0.20);
+    --role-badge-bg: #D1FAE5;
+    --role-badge-text: #047857;
+    --role-badge-border: #A7F3D0;
+    --role-button-bg: #059669;
+    --role-button-hover: #047857;
+    --role-button-active: #065F46;
+    --role-accent: #059669;
+    --role-accent-soft: rgba(5, 150, 105, 0.12);
+
+    --sidebar-bg: var(--role-sidebar-bg);
+    --color-canvas: var(--role-page-bg);
+    --color-primary: var(--role-button-bg);
+    --color-primary-hover: var(--role-button-hover);
+    --color-primary-active: var(--role-button-active);
+}
+
+:root[data-role="admin"],
+body[data-role="admin"] {
+    --role-page-bg: #F1F5F9;
+    --role-sidebar-bg: #1E293B;
+    --role-sidebar-hover: rgba(255, 255, 255, 0.10);
+    --role-sidebar-active: rgba(255, 255, 255, 0.18);
+    --role-sidebar-border: rgba(255, 255, 255, 0.14);
+    --role-badge-bg: #E2E8F0;
+    --role-badge-text: #334155;
+    --role-badge-border: #CBD5E1;
+    --role-button-bg: #1E293B;
+    --role-button-hover: #0F172A;
+    --role-button-active: #0F172A;
+    --role-accent: #1E293B;
+    --role-accent-soft: rgba(30, 41, 59, 0.12);
+
+    --sidebar-bg: var(--role-sidebar-bg);
+    --color-canvas: var(--role-page-bg);
+    --color-primary: var(--role-button-bg);
+    --color-primary-hover: var(--role-button-hover);
+    --color-primary-active: var(--role-button-active);
+}
+
+/* ---------- Tailwind Token Parity Helpers ---------- */
+.bg-sky-50 { background-color: #F0F9FF !important; }
+.bg-sky-600 { background-color: #0284C7 !important; }
+.bg-sky-100 { background-color: #E0F2FE !important; }
+.text-sky-700 { color: #0369A1 !important; }
+
+.bg-emerald-50 { background-color: #ECFDF5 !important; }
+.bg-emerald-600 { background-color: #059669 !important; }
+.bg-emerald-100 { background-color: #D1FAE5 !important; }
+.text-emerald-700 { color: #047857 !important; }
+
+.bg-slate-100 { background-color: #F1F5F9 !important; }
+.bg-slate-800 { background-color: #1E293B !important; }
+.bg-slate-200 { background-color: #E2E8F0 !important; }
+.text-slate-700 { color: #334155 !important; }
+.text-slate-800 { color: #1E293B !important; }
+.border-slate-200 { border-color: #E2E8F0 !important; }
+
+/* ---------- 30%: Main Dashboard Wrapper Background ---------- */
+body[data-role],
+body[data-role] .lms-wrapper,
+body[data-role] .lms-main {
+    background-color: var(--role-page-bg) !important;
+}
+
+/* ---------- 60%: Content Containers (Pure White, Slate-800 Text, Slate-200 Border) ---------- */
+.card,
+.gw-card,
+.gw-stat-card,
+.modal-content {
+    background-color: #FFFFFF !important;
+    color: #1E293B !important;
+    border-color: #E2E8F0 !important;
+}
+
+.card-header,
+.modal-header,
+.modal-footer {
+    border-color: #E2E8F0;
+}
+
+.table,
+.table > :not(caption) > * > * {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    border-color: #E2E8F0;
+}
+
+.table thead th {
+    background-color: #F8FAFC;
+    color: #334155;
+    border-bottom-color: #E2E8F0;
+}
+
+/* Preserve dark media stage */
+#lms-player-shell,
+#lms-player-container,
+#liveRefreshToast {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+/* ---------- 10%: Role Sidebar (White text/icons + Translucent Active Highlight) ---------- */
+.lms-sidebar {
+    background-color: var(--role-sidebar-bg) !important;
+    transition: background-color 0.2s ease, transform var(--sidebar-transition), width var(--sidebar-transition), min-width var(--sidebar-transition);
+}
+
+.sidebar-brand {
+    border-bottom: 1px solid var(--role-sidebar-border);
+}
+
+.sidebar-brand .brand-mark {
+    background-color: #FFFFFF;
+    color: var(--role-sidebar-bg);
+}
+
+.sidebar-brand .brand-name {
+    color: #FFFFFF;
+}
+
+.nav-section-label {
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.sidebar-nav .nav-link:hover {
+    background-color: var(--role-sidebar-hover) !important;
+    color: #FFFFFF !important;
+}
+
+.sidebar-nav .nav-link.active {
+    background-color: var(--role-sidebar-active) !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-nav .dropdown-menu {
+    background-color: var(--role-button-hover);
+    border: 1px solid var(--role-sidebar-border);
+}
+
+.sidebar-nav .dropdown-menu .dropdown-header {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.sidebar-nav .dropdown-menu .dropdown-item {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.sidebar-nav .dropdown-menu .dropdown-item:hover {
+    background-color: var(--role-sidebar-hover);
+    color: #FFFFFF;
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--role-sidebar-border);
+}
+
+.sidebar-user-avatar {
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    color: #FFFFFF;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.sidebar-user-name {
+    color: #FFFFFF;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 148px;
+}
+
+.sidebar-user-role {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.sidebar-signout-btn,
+.sidebar-auth-secondary {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    font-size: 0.76rem;
+}
+
+.sidebar-signout-btn:hover,
+.sidebar-auth-secondary:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+    color: #FFFFFF !important;
+}
+
+.sidebar-auth-primary {
+    background: #FFFFFF !important;
+    color: var(--role-sidebar-bg) !important;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid #FFFFFF !important;
+}
+
+.sidebar-badge-count {
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    font-size: 0.58rem;
+    min-width: 18px;
+}
+
+/* ---------- 10%: Primary Action Buttons & Accent Controls ---------- */
+.btn-primary,
+.btn-dark,
+.lms-btn-role-primary {
+    background-color: var(--role-button-bg) !important;
+    border-color: var(--role-button-bg) !important;
+    color: #FFFFFF !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-dark:hover,
+.btn-dark:focus,
+.lms-btn-role-primary:hover,
+.lms-btn-role-primary:focus {
+    background-color: var(--role-button-hover) !important;
+    border-color: var(--role-button-hover) !important;
+    color: #FFFFFF !important;
+}
+
+.btn-primary:active,
+.btn-dark:active,
+.lms-btn-role-primary:active {
+    background-color: var(--role-button-active) !important;
+    border-color: var(--role-button-active) !important;
+    color: #FFFFFF !important;
+}
+
+.topbar-search .input-group:focus-within {
+    border-color: var(--role-accent);
+    box-shadow: 0 0 0 3px var(--role-accent-soft);
+}
+
+.topbar-search .btn-search {
+    background-color: var(--role-button-bg);
+}
+
+.topbar-search .btn-search:hover {
+    background-color: var(--role-button-hover);
+}
+
+.compact-floating-search-chip {
+    background: var(--role-button-bg);
+}
+
+.compact-floating-search-chip:hover {
+    background: var(--role-button-hover);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--role-accent);
+    box-shadow: 0 0 0 3px var(--role-accent-soft);
+}
+
+.lesson-list .list-group-item {
+    border-left-color: var(--role-accent);
+}
+
+.progress-bar.bg-dark,
+.role-progress-bar {
+    background-color: var(--role-accent) !important;
+}
+
+/* ---------- Header Role Pill Badge, Topbar Brand & Nav Links ---------- */
+.lms-topbar {
+    background-color: #FFFFFF;
+    border-top: 3px solid var(--role-sidebar-bg);
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.topbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.topbar-brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background-color: var(--role-sidebar-bg);
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.topbar-brand-name {
+    color: #0F172A;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -0.025em;
+    white-space: nowrap;
+}
+
+.topbar-nav-link {
+    background: transparent;
+    border: none;
+    color: #334155;
+    font-size: 0.84rem;
+    font-weight: 500;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    text-decoration: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar-nav-link:hover,
+.topbar-nav-link.active {
+    background-color: var(--role-accent-soft);
+    color: var(--role-accent);
+    font-weight: 600;
+}
+
+.topbar-user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--role-accent);
+    color: #FFFFFF;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.topbar-dropdown-menu {
+    min-width: 220px;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 10px !important;
+    background-color: #FFFFFF !important;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12) !important;
+}
+
+.topbar-dropdown-menu .dropdown-item {
+    font-size: 0.83rem;
+    color: #1E293B;
+    padding: 0.45rem 0.9rem;
+}
+
+.topbar-dropdown-menu .dropdown-item:hover {
+    background-color: var(--role-accent-soft);
+    color: var(--role-accent);
+}
+
+.topbar-user-pill {
+    font-size: 0.82rem;
+    padding: 0.22rem 0.5rem 0.22rem 0.35rem;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 9999px;
+    color: #1E293B;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.topbar-user-pill:hover {
+    background-color: #F1F5F9;
+    border-color: #CBD5E1;
+    color: #1E293B;
+}
+
+.lms-role-badge,
+.badge.lms-role-badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--role-badge-bg) !important;
+    color: var(--role-badge-text) !important;
+    border: 1px solid var(--role-badge-border) !important;
+    border-radius: 9999px !important;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    text-transform: none !important;
+    padding: 0.22rem 0.62rem;
+    line-height: 1.15;
+}
+
+.badge.bg-primary,
+.badge.bg-dark {
+    background-color: var(--role-accent) !important;
+    color: #FFFFFF !important;
+}
+
+.role-accent-text {
+    color: var(--role-accent) !important;
+}
+
+/* ---------- Topbar Back / Forward History Controls (All Pages & Roles) ---------- */
+.lms-nav-history {
+    display: inline-flex;
+    align-items: center;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 9999px;
+    padding: 2px;
+    height: 34px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.lms-history-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: #1E293B;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.lms-history-btn:hover:not(:disabled):not(.is-disabled) {
+    background-color: var(--role-accent-soft, rgba(2, 132, 199, 0.12));
+    color: var(--role-accent, #0284C7);
+}
+
+.lms-history-btn:focus-visible {
+    outline: 2px solid var(--role-accent, #0284C7);
+    outline-offset: 1px;
+}
+
+.lms-history-btn:disabled,
+.lms-history-btn.is-disabled {
+    color: #94A3B8;
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.lms-history-divider {
+    width: 1px;
+    height: 16px;
+    background-color: #E2E8F0;
+    margin: 0 2px;
+}
+
+@media (max-width: 575.98px) {
+    .lms-nav-history {
+        height: 30px;
+    }
+
+    .lms-history-btn {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* ---------- Fully Responsive Hover & Touch Dropdown Menus ---------- */
+@keyframes lmsDropdownReveal {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu {
+    border-color: #E2E8F0;
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.05);
+}
+
+.dropdown-menu.show {
+    animation: lmsDropdownReveal 0.14s ease-out;
+}
+
+/* Invisible top pointer bridge eliminates flicker when cursor moves from trigger to menu */
+.dropdown-menu.show::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -10px;
+    height: 10px;
+    background: transparent;
+}
+
+/* Responsive viewport clamping for header / floating menus */
+.lms-student-header .dropdown-menu,
+.lms-topbar .dropdown-menu {
+    max-width: calc(100vw - 24px);
+    max-height: min(75vh, 440px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.lms-student-header .dropdown-item,
+.lms-topbar .dropdown-item {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Responsive nested accordion-style menu inside sidebar */
+.lms-sidebar .dropdown-menu {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.lms-sidebar .dropdown-menu.show {
+    position: static !important;
+    transform: none !important;
+    float: none;
+    margin: 4px 0 6px !important;
+}
+
+.lms-sidebar .dropdown-menu.show::before {
+    display: none;
+}
+
+@media (max-width: 575.98px) {
+    .student-header-dropdown,
+    .student-explore-menu {
+        min-width: min(240px, calc(100vw - 24px)) !important;
+    }
+}
+
+

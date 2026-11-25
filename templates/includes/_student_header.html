@@ -1,0 +1,187 @@
+{% load static %}
+<header class="lms-student-header" id="lmsStudentHeader">
+    <!-- Band 1: Announcement / Promo Strip -->
+    <div class="student-promo-strip" id="studentPromoBar">
+        {% if global_announcements %}
+            {% with ann=global_announcements.0 %}
+                <strong>{{ ann.title }}</strong> &bull;
+                <span>{{ ann.content|truncatewords:14 }}</span>
+                <a href="{% url 'courses:course_list' %}" class="student-promo-link">Explore courses</a>
+            {% endwith %}
+        {% else %}
+            <span>Keep learning cleanly: explore curated curriculams &amp; earn verified academic certificates.</span>
+            <a href="{% url 'courses:course_list' %}" class="student-promo-link">Browse all courses</a>
+        {% endif %}
+        <button type="button" id="studentPromoCloseBtn" class="student-promo-close" aria-label="Dismiss announcement" title="Dismiss">&#10005;</button>
+    </div>
+
+    <!-- Band 2: Main Udemy-Style Horizontal Navigation Bar -->
+    <div class="student-main-navbar">
+        <!-- Brand Wordmark -->
+        <a href="{% url 'courses:course_list' %}" class="student-brand">
+            <span class="student-brand-mark">L</span>
+            <span class="student-brand-wordmark">LMS Portal</span>
+        </a>
+
+        <!-- Back / Forward History Controls -->
+        {% include 'includes/_nav_history_controls.html' %}
+
+        <!-- Explore Categories Dropdown -->
+        <div class="dropdown">
+            <button type="button" class="student-nav-text-link dropdown-toggle" id="studentExploreDD" data-bs-toggle="dropdown" aria-expanded="false">
+                Explore
+            </button>
+            <ul class="dropdown-menu student-explore-menu" aria-labelledby="studentExploreDD">
+                <li><h6 class="dropdown-header text-uppercase small">Browse Catalog</h6></li>
+                <li>
+                    <a class="dropdown-item fw-semibold" href="{% url 'courses:course_list' %}">All Courses</a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'dashboard:student_dashboard' %}">My Learning Portal</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-uppercase small">Categories</h6></li>
+                {% for cat in sidebar_categories %}
+                    <li>
+                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'courses:course_list' %}?category={{ cat.slug }}">
+                            <span>{{ cat.name }}</span>
+                            <span class="badge bg-light text-dark border">{{ cat.courses_count }}</span>
+                        </a>
+                    </li>
+                {% empty %}
+                    <li><span class="dropdown-item text-muted">No categories yet</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Quick Portal Link -->
+        <a href="{% url 'dashboard:student_dashboard' %}"
+           class="student-nav-text-link d-none d-lg-inline-flex {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <!-- Rounded Pill Search Bar (Wired to Existing Autocomplete IDs) -->
+        <div class="topbar-search student-pill-search" id="topbarSearchWrap">
+            <form method="get" action="{% url 'courses:course_list' %}" id="topbarSearchForm" class="m-0" autocomplete="off">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </span>
+                    <input type="text" name="q" id="topbarSearchInput" class="form-control"
+                        placeholder="Search for courses, instructors..." autocomplete="off" aria-autocomplete="list"
+                        aria-controls="searchSuggestions"
+                        value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
+                    <button type="button" id="topbarClearBtn"
+                        style="display:{% if request.GET.q %}inline-flex{% else %}none{% endif %};background:none;border:none;color:#94a3b8;padding:0 8px;align-items:center;cursor:pointer;font-size:0.85rem;line-height:1;"
+                        title="Clear search">&#10005;</button>
+                    <button type="submit"
+                        class="btn-search {% if request.GET.q %}btn-search-compact-floating{% endif %}"
+                        id="topbarSearchBtn" title="Search">
+                        <span>Search</span>
+                    </button>
+                </div>
+            </form>
+            <div class="search-suggestions-dropdown" id="searchSuggestions" style="display:none;" role="listbox"></div>
+        </div>
+
+        <!-- Right Nav Links, Icons, and Avatar Menu -->
+        <div class="student-header-actions">
+            <a href="{% url 'accounts:instructor_list' %}"
+               class="student-nav-text-link d-none d-xl-inline-flex {% if request.resolver_match.url_name == 'instructor_list' or request.resolver_match.url_name == 'instructor_detail' %}active{% endif %}">
+                Instructors
+            </a>
+            <a href="{% url 'enrollments:my_certificates' %}"
+               class="student-nav-text-link d-none d-xl-inline-flex {% if request.resolver_match.url_name == 'my_certificates' %}active{% endif %}">
+                Certificates
+            </a>
+            <a href="{% url 'enrollments:my_courses' %}"
+               class="student-nav-text-link d-none d-md-inline-flex {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}">
+                My learning
+            </a>
+
+            <!-- Saved Wishlist Icon -->
+            <a href="{% url 'courses:course_list' %}?wishlist=1" class="student-icon-btn" title="Saved Wishlist" aria-label="Saved Wishlist">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                {% if wishlist_count %}
+                    <span class="student-icon-count">{{ wishlist_count }}</span>
+                {% endif %}
+            </a>
+
+            <!-- Order History Icon -->
+            <a href="{% url 'payments:order_history' %}" class="student-icon-btn" title="Order History" aria-label="Order History">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+            </a>
+
+            <!-- Notifications Icon -->
+            <a href="{% url 'discussions:notifications_list' %}" class="student-icon-btn" title="Notifications" aria-label="Notifications">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {% if unread_notifications_count %}
+                    <span id="studentNotifBadge" class="student-icon-count">{{ unread_notifications_count }}</span>
+                {% endif %}
+            </a>
+
+            <!-- Student Avatar + Name + Sky Blue Role Badge Menu -->
+            <div class="dropdown">
+                <button type="button" class="student-profile-trigger dropdown-toggle" id="studentAccountDD" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="student-header-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </span>
+                    <span class="d-none d-sm-inline">{{ user.username }}</span>
+                    <span id="topbarRoleBadge"
+                        class="lms-role-badge badge rounded-pill {{ role_theme.badge|default:'bg-sky-100 text-sky-700' }}"
+                        data-role-badge="{{ active_role_key|default:'student' }}">{{ role_theme.label|default:'Student' }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end student-header-dropdown" aria-labelledby="studentAccountDD">
+                    <li class="px-3 py-2 border-bottom">
+                        <div class="fw-bold text-slate-800 small">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="text-muted" style="font-size:0.74rem;">{{ user.email|default:user.username }}</div>
+                    </li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard:student_dashboard' %}">Student Dashboard</a></li>
+                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Personal Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'enrollments:my_courses' %}">My Enrolled Courses</a></li>
+                    <li><a class="dropdown-item" href="{% url 'enrollments:my_certificates' %}">My Certificates</a></li>
+                    <li><a class="dropdown-item" href="{% url 'payments:order_history' %}">Order History</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="px-3 py-1">
+                        <form action="{% url 'accounts:logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Sign Out</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Band 3: Category Sub-Navigation Strip -->
+    <nav class="student-category-subnav" aria-label="Course Categories">
+        <div class="student-category-track">
+            <a href="{% url 'courses:course_list' %}"
+               class="student-category-link {% if request.resolver_match.url_name == 'course_list' and not request.GET.category and not request.GET.wishlist %}active{% endif %}">
+                All Courses
+            </a>
+            {% for cat in sidebar_categories %}
+                <a href="{% url 'courses:course_list' %}?category={{ cat.slug }}"
+                   class="student-category-link {% if request.GET.category == cat.slug %}active{% endif %}">
+                    {{ cat.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </nav>
+</header>

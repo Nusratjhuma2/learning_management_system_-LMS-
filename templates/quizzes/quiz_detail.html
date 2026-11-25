@@ -95,27 +95,30 @@
 
                     <div>
                         {% if is_instructor %}
-                            <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn btn-outline-dark me-2">
+                            <a href="{% url 'quizzes:quiz_attempts_list' quiz.pk %}" class="btn btn-outline-secondary me-2">
+                                Student Attempts
+                            </a>
+                            <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn btn-dark">
                                 Manage Assessment
                             </a>
-                        {% endif %}
-
-                        {% if attempts_exhausted %}
-                            <button class="btn btn-secondary px-4 py-2" disabled>
-                                Attempts Limit Reached
-                            </button>
-                        {% else %}
-                            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}?action=start" class="btn btn-dark px-4 py-2 fw-semibold">
-                                {% if past_attempts.exists %}Retake Assessment{% else %}Start Assessment{% endif %} &rarr;
-                            </a>
+                        {% elif is_enrolled %}
+                            {% if attempts_exhausted %}
+                                <button class="btn btn-secondary px-4 py-2" disabled>
+                                    Attempts Limit Reached
+                                </button>
+                            {% else %}
+                                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}?action=start" class="btn btn-dark px-4 py-2 fw-semibold">
+                                    {% if past_attempts.exists %}Retake Assessment{% else %}Start Assessment{% endif %} &rarr;
+                                </a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Past Attempts History Table -->
-        {% if past_attempts.exists %}
+        <!-- Past Attempts History Table (Students Only) -->
+        {% if is_enrolled and past_attempts.exists %}
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white border-bottom p-3">
                     <h6 class="fw-bold text-dark mb-0">Previous Attempt History</h6>

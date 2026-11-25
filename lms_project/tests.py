@@ -224,3 +224,336 @@ class EnterpriseLMSTestSuite(TestCase):
         self.assertEqual(attempt.score, 0.0)
         self.assertFalse(attempt.passed)
         self.assertEqual(attempt.tab_switch_count, 3)
+
+
+class RoleIsolationAndGovernanceTests(TestCase):
+    """
+    Verifies strict role-based actor isolation across Student, Instructor, and Admin,
+    plus Admin platform governance overrides.
+    """
+
+    def setUp(self):
+        from assignments.models import Assignment, AssignmentSubmission
+        from courses.models import CourseReview, Wishlist
+        from discussions.models import CourseAnnouncement, DiscussionThread
+        from payments.models import Order
+
+        self.Assignment = Assignment
+        self.AssignmentSubmission = AssignmentSubmission
+        self.CourseReview = CourseReview
+        self.Wishlist = Wishlist
+        self.CourseAnnouncement = CourseAnnouncement
+        self.DiscussionThread = DiscussionThread
+        self.Order = Order
+
+        self.category = Category.objects.create(name="Software Engineering", slug="swe")
+        self.student = User.objects.create_user(
+            username="role_student",
+            password="Password123!",
+            role=User.Role.STUDENT,
+            email="r_stud@test.local",
+        )
+        self.outsider_student = User.objects.create_user(
+            username="role_outsider",
+            password="Password123!",
+            role=User.Role.STUDENT,
+            email="r_out@test.local",
+        )
+        self.instructor = User.objects.create_user(
+            username="role_instructor",
+            password="Password123!",
+            role=User.Role.INSTRUCTOR,
+            email="r_inst@test.local",
+        )
+        self.other_instructor = User.objects.create_user(
+            username="role_other_instructor",
+            password="Password123!",
+            role=User.Role.INSTRUCTOR,
+            email="r_other_inst@test.local",
+        )
+        self.admin_user = User.objects.create_user(
+            username="role_admin",
+            password="Password123!",
+            role=User.Role.ADMIN,
+            email="r_admin@test.local",
+        )
+
+        self.free_course = Course.objects.create(
+            title="Free Systems Course",
+            slug="free-systems-course",
+            category=self.category,
+            instructor=self.instructor,
+            price=Decimal("0.00"),
+            is_free=True,
+            status=Course.Status.PUBLISHED,
+        )
+        self.paid_course = Course.objects.create(
+            title="Paid Architecture Course",
+            slug="paid-architecture-course",
+            category=self.category,
+            instructor=self.instructor,
+            price=Decimal("90.00"),
+            is_free=False,
+            status=Course.Status.PUBLISHED,
+        )
+        self.lesson = Lesson.objects.create(
+            course=self.free_course,
+            title="Core Lecture 1",
+            order=1,
+            lesson_type=Lesson.LessonType.ARTICLE,
+            text_content="Architecture foundations and distributed consensus.",
+        )
+        self.quiz = Quiz.objects.create(
+            course=self.free_course,
+            title="Core Quiz",
+            pass_mark_percent=50,
+            enforce_anticheat=False,
+        )
+        self.question = Question.objects.create(
+            quiz=self.quiz,
+            text="Is consensus important?",
+            question_type="true_false",
+            points=1,
+        )
+        Choice.objects.create(question=self.question, text="True", is_correct=True)
+        Choice.objects.create(question=self.question, text="False", is_correct=False)
+        self.assignment = Assignment.objects.create(
+            course=self.free_course,
+            title="Architecture Essay",
+            description="Write a brief design doc.",
+            max_score=100,
+        )
+
+        Enrollment.objects.create(student=self.student, course=self.free_course)
+
+    def test_dashboards_and_topbar_strictly_isolated_by_role(self):
+        # Student dashboard: only student allowed
+        self.client.force_login(self.student)
+        self.assertEqual(self.client.get(reverse('dashboard:student_dashboard')).status_code, 200)
+        self.assertRedirects(
+            self.client.get(reverse('dashboard:instructor_dashboard')),
+            reverse('dashboard:student_dashboard'),
+        )
+        self.assertRedirects(
+            self.client.get(reverse('dashboard:admin_dashboard')),
+            reverse('dashboard:student_dashboard'),
+        )
+
+        # Instructor dashboard: only instructor allowed
+        self.client.force_login(self.instructor)
+        self.assertEqual(self.client.get(reverse('dashboard:instructor_dashboard')).status_code, 200)
+        self.assertRedirects(
+            self.client.get(reverse('dashboard:student_dashboard')),
+            reverse('dashboard:instructor_dashboard'),
+        )
+        self.assertRedirects(
+            self.client.get(reverse('dashboard:admin_dashboard')),
+            reverse('dashboard:instructor_dashboard'),
+        )
+
+        # Admin dashboard: only admin allowed (even non-superuser role='admin')
+        self.client.force_login(self.admin_user)
+        admin_res = self.client.get(reverse('dashboard:admin_dashboard'))
+        self.assertEqual(admin_res.status_code, 200)
+        self.assertNotContains(admin_res, reverse('enrollments:my_courses'))
+        self.assertNotContains(admin_res, reverse('enrollments:my_certificates'))
+        self.assertRedirects(
+            self.client.get(reverse('dashboard:student_dashboard')),
+            reverse('dashboard:admin_dashboard'),
+        )
+        self.assertRedirects(
+            self.client.get(reverse('dashboard:instructor_dashboard')),
+            reverse('dashboard:admin_dashboard'),
+        )
+        self.assertEqual(self.client.get(reverse('dashboard:admin_dashboard_api')).status_code, 200)
+
+    def test_profile_and_catalog_ui_scoped_by_role(self):
+        # Student sees Purchased & Enrolled Courses on profile and Enroll/Purchase on catalog
+        self.client.force_login(self.student)
+        stud_prof = self.client.get(reverse('accounts:profile'))
+        self.assertContains(stud_prof, 'My Purchased &amp; Enrolled Courses')
+        stud_cat = self.client.get(reverse('courses:course_list'))
+        self.assertContains(stud_cat, 'Purchase &rarr;')
+
+        # Instructor & Admin do not see student purchase ledger or student enroll/purchase buttons
+        for actor in (self.instructor, self.admin_user):
+            self.client.force_login(actor)
+            prof_res = self.client.get(reverse('accounts:profile'))
+            self.assertEqual(prof_res.status_code, 200)
+            self.assertNotContains(prof_res, 'My Purchased &amp; Enrolled Courses')
+
+            cat_res = self.client.get(reverse('courses:course_list'))
+            self.assertEqual(cat_res.status_code, 200)
+            self.assertNotContains(cat_res, 'Enroll Free')
+            self.assertNotContains(cat_res, 'Purchase &rarr;')
+
+            det_res = self.client.get(reverse('courses:course_detail', args=[self.paid_course.slug]))
+            self.assertEqual(det_res.status_code, 200)
+            self.assertNotContains(det_res, 'Add to Wishlist')
+            self.assertNotContains(det_res, 'Purchase &amp; Enroll Now')
+
+    def test_student_only_actions_blocked_for_instructors_and_admins(self):
+        for actor in (self.instructor, self.other_instructor, self.admin_user):
+            self.client.force_login(actor)
+
+            # Enroll / unenroll / my_courses / my_certificates
+            self.client.get(reverse('enrollments:enroll', args=[self.free_course.slug]))
+            self.assertFalse(Enrollment.objects.filter(student=actor, course=self.free_course).exists())
+            self.assertEqual(self.client.get(reverse('enrollments:my_courses')).status_code, 302)
+            self.assertEqual(self.client.get(reverse('enrollments:my_certificates')).status_code, 302)
+
+            # Checkout / order history
+            self.assertEqual(self.client.get(reverse('payments:checkout', args=[self.paid_course.slug])).status_code, 302)
+            self.assertFalse(self.Order.objects.filter(user=actor).exists())
+            self.assertEqual(self.client.get(reverse('payments:order_history')).status_code, 302)
+
+            # Wishlist & Course Review
+            self.client.post(reverse('courses:toggle_wishlist', args=[self.paid_course.slug]))
+            self.assertFalse(self.Wishlist.objects.filter(student=actor).exists())
+            self.client.post(reverse('courses:add_review', args=[self.free_course.slug]), {'rating': 5, 'comment': 'Great'})
+            self.assertFalse(self.CourseReview.objects.filter(student=actor).exists())
+
+            # Lesson progress & notes
+            self.assertEqual(self.client.post(reverse('lessons:mark_completed_api', args=[self.lesson.id])).status_code, 403)
+            self.assertEqual(
+                self.client.post(
+                    reverse('lessons:heartbeat_api', args=[self.lesson.id]),
+                    data=json.dumps({'current_position': 10, 'delta_watched': 10}),
+                    content_type='application/json',
+                ).status_code,
+                403,
+            )
+            self.assertEqual(
+                self.client.post(
+                    reverse('lessons:save_note_api', args=[self.lesson.id]),
+                    data=json.dumps({'timestamp_seconds': 5, 'note_text': 'Should fail'}),
+                    content_type='application/json',
+                ).status_code,
+                403,
+            )
+            self.assertFalse(LessonProgress.objects.filter(student=actor).exists())
+
+            # Quiz taking & Assignment submission
+            self.client.get(reverse('quizzes:quiz_detail', args=[self.quiz.pk]) + '?action=start')
+            self.client.post(reverse('quizzes:quiz_submit', args=[self.quiz.pk]), {})
+            self.assertFalse(QuizAttempt.objects.filter(student=actor).exists())
+            self.assertEqual(
+                self.client.post(
+                    reverse('quizzes:log_tab_switch', args=[self.quiz.pk]),
+                    data=json.dumps({'tab_switch_count': 1}),
+                    content_type='application/json',
+                ).status_code,
+                403,
+            )
+
+            self.client.post(
+                reverse('assignments:submit_assignment', args=[self.assignment.pk]),
+                {'submission_text': 'Non-student submission'},
+            )
+            self.assertFalse(self.AssignmentSubmission.objects.filter(student=actor).exists())
+
+    def test_instructor_ownership_isolation_and_admin_override(self):
+        # Other instructor cannot edit/delete/add module/add lesson/block/create quiz/grade on instructor's course
+        self.client.force_login(self.other_instructor)
+        self.assertEqual(
+            self.client.get(reverse('courses:course_update', args=[self.free_course.slug])).status_code,
+            302,
+        )
+        self.assertEqual(
+            self.client.post(reverse('courses:module_create', args=[self.free_course.slug]), {'title': 'Hijack'}).status_code,
+            302,
+        )
+        self.assertEqual(
+            self.client.post(reverse('courses:toggle_block', args=[self.free_course.slug])).status_code,
+            302,
+        )
+        self.assertEqual(
+            self.client.get(reverse('lessons:lesson_create', args=[self.free_course.slug])).status_code,
+            302,
+        )
+        self.assertEqual(
+            self.client.get(reverse('quizzes:quiz_edit', args=[self.quiz.pk])).status_code,
+            302,
+        )
+        self.assertEqual(
+            self.client.get(reverse('assignments:submissions_list', args=[self.assignment.pk])).status_code,
+            302,
+        )
+
+        # Owning instructor cannot block courses (Admin only)
+        self.client.force_login(self.instructor)
+        self.client.post(reverse('courses:toggle_block', args=[self.free_course.slug]))
+        self.free_course.refresh_from_db()
+        self.assertFalse(self.free_course.is_blocked)
+
+        # Admin (even without superuser flag) CAN override: block/unblock, inspect lesson, edit quiz, list all assignments
+        self.client.force_login(self.admin_user)
+        self.client.post(reverse('courses:toggle_block', args=[self.free_course.slug]))
+        self.free_course.refresh_from_db()
+        self.assertTrue(self.free_course.is_blocked)
+
+        # Blocked course cannot be enrolled or checked out by students
+        self.client.force_login(self.outsider_student)
+        self.assertEqual(self.client.get(reverse('enrollments:enroll', args=[self.free_course.slug])).status_code, 404)
+
+        self.client.force_login(self.admin_user)
+        self.client.post(reverse('courses:toggle_block', args=[self.free_course.slug]))
+        self.free_course.refresh_from_db()
+        self.assertFalse(self.free_course.is_blocked)
+
+        self.assertEqual(
+            self.client.get(reverse('lessons:lesson_detail', args=[self.free_course.slug, self.lesson.pk])).status_code,
+            200,
+        )
+        self.assertEqual(self.client.get(reverse('quizzes:quiz_edit', args=[self.quiz.pk])).status_code, 200)
+        inst_assigns = self.client.get(reverse('assignments:instructor_assignments'))
+        self.assertEqual(inst_assigns.status_code, 200)
+        self.assertContains(inst_assigns, self.assignment.title)
+
+    def test_discussions_and_announcements_role_and_enrollment_isolation(self):
+        thread = self.DiscussionThread.objects.create(
+            course=self.free_course,
+            lesson=self.lesson,
+            author=self.student,
+            title="Question about Consensus",
+            content="How does Raft elect leaders?",
+        )
+
+        # Unenrolled student and non-owning instructor cannot view or post in discussions
+        for user in (self.outsider_student, self.other_instructor):
+            self.client.force_login(user)
+            self.assertEqual(self.client.get(reverse('discussions:course_discussions', args=[self.free_course.slug])).status_code, 302)
+            self.assertEqual(self.client.get(reverse('discussions:thread_detail', args=[thread.pk])).status_code, 302)
+            self.assertEqual(
+                self.client.post(
+                    reverse('discussions:create_thread_api', args=[self.lesson.id]),
+                    data=json.dumps({'title': 'Nope', 'body': 'Denied'}),
+                    content_type='application/json',
+                ).status_code,
+                403,
+            )
+            self.assertEqual(
+                self.client.post(
+                    reverse('discussions:reply_thread_api', args=[thread.pk]),
+                    data=json.dumps({'body': 'Denied reply'}),
+                    content_type='application/json',
+                ).status_code,
+                403,
+            )
+
+        # Enrolled student, owning instructor, and admin CAN participate; only instructor/admin can announce
+        self.client.force_login(self.student)
+        self.assertEqual(self.client.get(reverse('discussions:thread_detail', args=[thread.pk])).status_code, 200)
+        self.client.post(reverse('discussions:create_announcement', args=[self.free_course.slug]), {'title': 'Spam', 'content': 'No'})
+        self.assertFalse(self.CourseAnnouncement.objects.exists())
+
+        self.client.force_login(self.instructor)
+        self.assertEqual(self.client.get(reverse('discussions:thread_detail', args=[thread.pk])).status_code, 200)
+        self.client.post(
+            reverse('discussions:create_announcement', args=[self.free_course.slug]),
+            {'title': 'Exam Notice', 'content': 'Quiz opens Friday'},
+        )
+        self.assertTrue(self.CourseAnnouncement.objects.filter(title='Exam Notice').exists())
+
+        self.client.force_login(self.admin_user)
+        self.assertEqual(self.client.get(reverse('discussions:thread_detail', args=[thread.pk])).status_code, 200)

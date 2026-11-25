@@ -3,6 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from accounts.permissions import (
+    deny_role_redirect,
+    is_admin_user,
+    is_course_manager,
+    is_instructor_user,
+    is_student_user,
+)
 from courses.models import Course
 from .forms import AssignmentForm, AssignmentSubmissionForm, GradingForm
 from .models import Assignment, AssignmentSubmission
@@ -16,8 +23,8 @@ def assignment_detail(request, pk):
         pk=pk,
     )
     course = assignment.course
-    is_instructor = request.user == course.instructor or request.user.is_admin
-    is_enrolled = course.enrollments.filter(student=request.user).exists()
+    is_instructor = is_course_manager(request.user, course)
+    is_enrolled = is_student_user(request.user) and course.enrollments.filter(student=request.user).exists()
 
     if not is_instructor and not is_enrolled:
         messages.error(request, "You must be enrolled in this course to view this assignment.")
@@ -25,7 +32,7 @@ def assignment_detail(request, pk):
 
     submission = None
     submission_form = None
-    if not is_instructor:
+    if is_enrolled:
         submission = AssignmentSubmission.objects.filter(
             assignment=assignment,
             student=request.user,
@@ -47,6 +54,14 @@ def submit_assignment(request, pk):
     """Handle student assignment file upload or text submission."""
     assignment = get_object_or_404(Assignment, pk=pk)
     course = assignment.course
+
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only enrolled students can submit assignments.",
+            'assignments:assignment_detail',
+            pk=assignment.pk,
+        )
 
     if not course.enrollments.filter(student=request.user).exists():
         messages.error(request, "You are not enrolled in this course.")
@@ -71,9 +86,9 @@ def submit_assignment(request, pk):
 
 @login_required
 def assignment_create(request, course_slug):
-    """Instructor creates a new assignment for a course."""
+    """Instructor or admin creates a new assignment for a course."""
     course = get_object_or_404(Course, slug=course_slug)
-    if request.user != course.instructor and not request.user.is_admin:
+    if not is_course_manager(request.user, course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -97,9 +112,9 @@ def assignment_create(request, course_slug):
 
 @login_required
 def assignment_update(request, pk):
-    """Instructor edits an assignment."""
-    assignment = get_object_or_404(Assignment, pk=pk)
-    if request.user != assignment.course.instructor and not request.user.is_admin:
+    """Instructor or admin edits an assignment."""
+    assignment = get_object_or_404(Assignment.objects.select_related('course'), pk=pk)
+    if not is_course_manager(request.user, assignment.course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=assignment.course.slug)
 
@@ -121,10 +136,10 @@ def assignment_update(request, pk):
 
 @login_required
 def assignment_delete(request, pk):
-    """Instructor deletes an assignment."""
-    assignment = get_object_or_404(Assignment, pk=pk)
+    """Instructor or admin deletes an assignment."""
+    assignment = get_object_or_404(Assignment.objects.select_related('course'), pk=pk)
     course = assignment.course
-    if request.user != course.instructor and not request.user.is_admin:
+    if not is_course_manager(request.user, course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -138,9 +153,9 @@ def assignment_delete(request, pk):
 
 @login_required
 def submissions_list(request, pk):
-    """Instructor reviews all submissions for an assignment."""
-    assignment = get_object_or_404(Assignment, pk=pk)
-    if request.user != assignment.course.instructor and not request.user.is_admin:
+    """Instructor or admin reviews all submissions for an assignment."""
+    assignment = get_object_or_404(Assignment.objects.select_related('course'), pk=pk)
+    if not is_course_manager(request.user, assignment.course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=assignment.course.slug)
 
@@ -160,13 +175,13 @@ def submissions_list(request, pk):
 
 @login_required
 def grade_submission(request, submission_id):
-    """Instructor grades an individual student submission."""
+    """Instructor or admin grades an individual student submission."""
     submission = get_object_or_404(
         AssignmentSubmission.objects.select_related('assignment', 'assignment__course', 'student'),
         pk=submission_id,
     )
     course = submission.assignment.course
-    if request.user != course.instructor and not request.user.is_admin:
+    if not is_course_manager(request.user, course):
         messages.error(request, "Permission denied.")
         return redirect('courses:course_detail', slug=course.slug)
 
@@ -190,13 +205,16 @@ def grade_submission(request, submission_id):
 
 @login_required
 def instructor_assignments_list(request):
-    """Instructor overview of all assignments they have published."""
-    if not request.user.is_instructor and not request.user.is_admin:
-        return redirect('dashboard:index')
+    """Instructor or admin overview of published assignments."""
+    if not (is_instructor_user(request.user) or is_admin_user(request.user)):
+        return deny_role_redirect(request, "Permission denied.")
 
-    assignments = Assignment.objects.filter(
-        course__instructor=request.user
-    ).select_related('course').prefetch_related('submissions')
+    if is_admin_user(request.user):
+        assignments = Assignment.objects.all().select_related('course').prefetch_related('submissions')
+    else:
+        assignments = Assignment.objects.filter(
+            course__instructor=request.user
+        ).select_related('course').prefetch_related('submissions')
     return render(request, 'assignments/instructor_assignments.html', {
         'assignments': assignments,
     })

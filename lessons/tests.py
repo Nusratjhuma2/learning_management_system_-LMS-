@@ -233,19 +233,31 @@ class VideoTranscodingAndStreamTests(BaseLessonFeatureTestCase):
         master_resp = self.client.get(f'{manifest_url}?token={token}')
         self.assertEqual(master_resp.status_code, 200)
         master_body = master_resp.content.decode('utf-8')
-        self.assertIn(f'/hls/1080p/manifest.m3u8?token={token}', master_body)
-        self.assertIn(f'/hls/720p/manifest.m3u8?token={token}', master_body)
-        self.assertIn(f'/hls/480p/manifest.m3u8?token={token}', master_body)
+        m_1080 = re.search(r'/hls/1080p/manifest\.m3u8\?token=([^\s]+)', master_body)
+        m_720 = re.search(r'/hls/720p/manifest\.m3u8\?token=([^\s]+)', master_body)
+        m_480 = re.search(r'/hls/480p/manifest\.m3u8\?token=([^\s]+)', master_body)
+        self.assertIsNotNone(m_1080)
+        self.assertIsNotNone(m_720)
+        self.assertIsNotNone(m_480)
+        self.assertEqual(get_hls_signer().unsign(m_1080.group(1)), f'{self.student.id}:{lesson.id}')
 
         var_resp = self.client.get(f'{variant_url}?token={token}')
         self.assertEqual(var_resp.status_code, 200)
         var_body = var_resp.content.decode('utf-8')
-        self.assertIn(f'hls/key/?token={token}', var_body)
-        self.assertIn(f'hls/720p/segment/segment_000.ts?token={token}', var_body)
+        m_key = re.search(r'hls/key/\?token=([^"\s]+)', var_body)
+        m_seg = re.search(r'hls/720p/segment/segment_000\.ts\?token=([^\s]+)', var_body)
+        self.assertIsNotNone(m_key)
+        self.assertIsNotNone(m_seg)
+        self.assertEqual(get_hls_signer().unsign(m_seg.group(1)), f'{self.student.id}:{lesson.id}')
 
         seg_resp = self.client.get(f'{seg_url}?token={token}')
         self.assertEqual(seg_resp.status_code, 200)
-        self.assertEqual(b''.join(seg_resp.streaming_content), b'SECURED_TS_BYTES')
+        seg_bytes = (
+            b''.join(seg_resp.streaming_content)
+            if getattr(seg_resp, 'streaming', False)
+            else seg_resp.content
+        )
+        self.assertEqual(seg_bytes, b'SECURED_TS_BYTES')
 
     def test_protected_stream_supports_range_and_blocks_unauthorized(self):
         payload = _build_minimal_mp4(duration_seconds=30) + b'0123456789ABCDEF'

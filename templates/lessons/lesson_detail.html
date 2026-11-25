@@ -162,7 +162,7 @@
                             {% endif %}
                         {% endif %}
                     </div>
-                    {% if lesson.is_embed_video %}
+                    {% if is_student and lesson.is_embed_video %}
                         <button id="btn-mark-completed" type="button" class="btn btn-sm {% if progress.is_completed %}btn-secondary{% else %}btn-dark{% endif %}">
                             {% if progress.is_completed %}Completed ✓{% else %}Mark as Completed ✓{% endif %}
                         </button>
@@ -185,9 +185,11 @@
                     <div class="fs-1 text-muted mb-2">&#128214;</div>
                     <h5 class="fw-bold text-dark mb-1">Academic Study Lecture</h5>
                     <p class="text-secondary small mb-3">Study the lesson transcript, personal notes, and peer discussions below.</p>
-                    <button id="btn-mark-completed" type="button" class="btn btn-sm {% if progress.is_completed %}btn-secondary{% else %}btn-dark{% endif %}">
-                        {% if progress.is_completed %}Completed ✓{% else %}Mark as Completed ✓{% endif %}
-                    </button>
+                    {% if is_student %}
+                        <button id="btn-mark-completed" type="button" class="btn btn-sm {% if progress.is_completed %}btn-secondary{% else %}btn-dark{% endif %}">
+                            {% if progress.is_completed %}Completed ✓{% else %}Mark as Completed ✓{% endif %}
+                        </button>
+                    {% endif %}
                 </div>
             {% endif %}
 
@@ -284,6 +286,7 @@
                 <div class="tab-content" id="lessonTabsContent">
                     <!-- Tab 1: Timestamped Notes -->
                     <div class="tab-pane fade show active" id="tab-notes" role="tabpanel">
+                        {% if is_student %}
                         <div class="p-3 bg-light rounded-3 border mb-3">
                             <h6 class="fw-bold text-dark mb-2">Add a Timestamped Note</h6>
                             <div class="input-group">
@@ -291,6 +294,11 @@
                                 <button class="btn btn-primary" type="button" id="save-note-btn">Save Note</button>
                             </div>
                         </div>
+                        {% else %}
+                        <div class="p-3 bg-light rounded-3 border mb-3 small text-muted">
+                            Personal study notes are enabled exclusively for enrolled student accounts.
+                        </div>
+                        {% endif %}
 
                         <div id="notes-list" class="space-y-2">
                             {% for note in notes %}
@@ -374,9 +382,9 @@
             </div>
         </div>
 
-        {% if user == lesson.course.instructor %}
+        {% if is_instructor_or_admin %}
             <div class="card p-3 border">
-                <span class="badge mb-2">Instructor Panel</span>
+                <span class="badge mb-2">{% if user == lesson.course.instructor %}Instructor Panel{% else %}Admin Moderation{% endif %}</span>
                 <div class="d-grid gap-2">
                     <a href="{% url 'lessons:lesson_update' lesson.course.slug lesson.pk %}" class="btn btn-secondary btn-sm">Edit Lesson</a>
                     <a href="{% url 'lessons:lesson_delete' lesson.course.slug lesson.pk %}" class="btn btn-danger btn-sm">Delete Lesson</a>

@@ -12,11 +12,11 @@
             </div>
             <div class="mt-1">
                 {% if request.user.is_superuser or request.user.role == 'admin' %}
-                    <span class="badge bg-dark text-white" style="font-size: 0.65rem;">ADMINISTRATOR</span>
+                    <span class="lms-role-badge badge rounded-pill bg-slate-200 text-slate-700">Admin</span>
                 {% elif request.user.role == 'instructor' %}
-                    <span class="badge bg-secondary text-dark border" style="font-size: 0.65rem;">INSTRUCTOR</span>
+                    <span class="lms-role-badge badge rounded-pill bg-emerald-100 text-emerald-700">Instructor</span>
                 {% else %}
-                    <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">STUDENT</span>
+                    <span class="lms-role-badge badge rounded-pill bg-sky-100 text-sky-700">Student</span>
                 {% endif %}
             </div>
         </div>
@@ -153,37 +153,7 @@
         </div>
     </div>
 
-    <!-- Section 3: Role Switcher / Platform Perspectives -->
-    {% if request.user.is_superuser or request.user.role == 'admin' %}
-        <div class="mb-3 pt-3 border-top">
-            <div class="sidebar-section-title">VIEWABLE PERSPECTIVES</div>
-            <div class="d-flex flex-column gap-1">
-                <a href="{% url 'dashboard:admin_dashboard' %}" class="sidebar-role-btn {% if active_page == 'admin_dashboard' %}active{% endif %}">
-                    <span>&#128274;</span> Admin View (Current)
-                </a>
-                <a href="{% url 'dashboard:instructor_dashboard' %}" class="sidebar-role-btn {% if active_page == 'instructor_dashboard' %}active{% endif %}">
-                    <span>&#127891;</span> Instructor View
-                </a>
-                <a href="{% url 'dashboard:student_dashboard' %}" class="sidebar-role-btn {% if active_page == 'student_dashboard' %}active{% endif %}">
-                    <span>&#128100;</span> Student View
-                </a>
-            </div>
-        </div>
-    {% elif request.user.role == 'instructor' %}
-        <div class="mb-3 pt-3 border-top">
-            <div class="sidebar-section-title">VIEWABLE PERSPECTIVES</div>
-            <div class="d-flex flex-column gap-1">
-                <a href="{% url 'dashboard:instructor_dashboard' %}" class="sidebar-role-btn active">
-                    <span>&#127891;</span> Instructor Studio
-                </a>
-                <a href="{% url 'dashboard:student_dashboard' %}" class="sidebar-role-btn">
-                    <span>&#128100;</span> Student Portal
-                </a>
-            </div>
-        </div>
-    {% endif %}
-
-    <!-- Section 4: System Operational Status Footer -->
+    <!-- Section 3: System Operational Status Footer -->
     <div class="pt-3 border-top text-center">
         <div class="d-inline-flex align-items-center gap-1 bg-light border rounded-pill px-2 py-1 small" style="font-size: 0.7rem; color: #334155;">
             <span class="gw-pulse-dot" style="width: 6px; height: 6px;"></span>

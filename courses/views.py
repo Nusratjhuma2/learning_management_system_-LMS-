@@ -5,6 +5,13 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.permissions import (
+    deny_role_redirect,
+    is_admin_user,
+    is_course_manager,
+    is_instructor_user,
+    is_student_user,
+)
 from enrollments.models import Enrollment
 from payments.models import Order
 from .forms import CourseForm
@@ -13,8 +20,8 @@ from .services.curriculum import build_course_curriculum_state
 
 
 def _get_purchased_or_enrolled_course_ids(user):
-    """Return set of course IDs the authenticated user owns via enrollment or completed order."""
-    if not user or not user.is_authenticated:
+    """Return set of course IDs the authenticated student owns via enrollment or completed order."""
+    if not is_student_user(user):
         return set()
     enrolled_ids = set(
         Enrollment.objects.filter(student=user).values_list('course_id', flat=True)
@@ -67,7 +74,10 @@ def course_suggest(request):
 
 def course_list(request):
     """List all published courses with search, category, level, and price filters. Admins can view blocked courses."""
-    is_admin = request.user.is_authenticated and (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin')
+    is_admin = is_admin_user(request.user)
+    is_instructor = is_instructor_user(request.user)
+    is_student = is_student_user(request.user)
+
     if is_admin:
         queryset = (
             Course.objects.all()
@@ -109,6 +119,12 @@ def course_list(request):
     elif price_filter == 'paid':
         queryset = queryset.filter(is_free=False)
 
+    # Saved wishlist filter (students only)
+    wishlist_only = is_student and request.GET.get('wishlist', '').strip() == '1'
+    if wishlist_only:
+        wishlist_ids = Wishlist.objects.filter(student=request.user).values_list('course_id', flat=True)
+        queryset = queryset.filter(id__in=wishlist_ids)
+
     # Sorting
     sort = request.GET.get('sort', 'newest')
     if sort == 'rating':
@@ -124,24 +140,26 @@ def course_list(request):
 
     user_wishlist = set()
     enrolled_course_ids = set()
-    if request.user.is_authenticated:
+    if is_student:
         user_wishlist = set(
             Wishlist.objects.filter(student=request.user).values_list('course_id', flat=True)
         )
         enrolled_course_ids = _get_purchased_or_enrolled_course_ids(request.user)
 
     # Promotional carousel: top courses by rating + enrollment count (up to 6 slides)
-    promo_courses = list(
-        Course.objects.filter(status=Course.Status.PUBLISHED, is_blocked=False)
-        .select_related('instructor', 'category')
-        .annotate(
-            avg_r=Avg('reviews__rating'),
-            rev_count=Count('reviews', distinct=True),
-            enroll_count=Count('enrollments', distinct=True),
-            lesson_count=Count('lessons', distinct=True),
+    promo_courses = []
+    if not wishlist_only:
+        promo_courses = list(
+            Course.objects.filter(status=Course.Status.PUBLISHED, is_blocked=False)
+            .select_related('instructor', 'category')
+            .annotate(
+                avg_r=Avg('reviews__rating'),
+                rev_count=Count('reviews', distinct=True),
+                enroll_count=Count('enrollments', distinct=True),
+                lesson_count=Count('lessons', distinct=True),
+            )
+            .order_by('-avg_r', '-enroll_count', '-created_at')[:6]
         )
-        .order_by('-avg_r', '-enroll_count', '-created_at')[:6]
-    )
 
     return render(
         request,
@@ -154,9 +172,14 @@ def course_list(request):
             'current_level': level,
             'current_price': price_filter,
             'current_sort': sort,
+            'wishlist_only': wishlist_only,
             'user_wishlist': user_wishlist,
             'enrolled_course_ids': enrolled_course_ids,
             'promo_courses': promo_courses,
+            'is_admin': is_admin,
+            'is_instructor': is_instructor,
+            'is_student': is_student,
+            'can_create_course': is_instructor or is_admin,
         },
     )
 
@@ -167,7 +190,11 @@ def course_detail(request, slug):
         Course.objects.select_related('instructor', 'category'),
         slug=slug,
     )
-    is_admin = request.user.is_authenticated and (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin')
+    is_admin = is_admin_user(request.user)
+    is_instructor = is_instructor_user(request.user)
+    is_student = is_student_user(request.user)
+    can_manage_course = is_course_manager(request.user, course)
+
     if course.is_blocked and not is_admin:
         messages.error(request, "This course has been suspended or blocked by platform administration.")
         return redirect('courses:course_list')
@@ -196,14 +223,14 @@ def course_detail(request, slug):
     prereqs_satisfied = True
     unmet_prereqs = []
 
-    if request.user.is_authenticated:
+    if is_student:
         is_enrolled = course.enrollments.filter(student=request.user).exists()
         has_purchased = is_enrolled or Order.objects.filter(
             user=request.user, course=course, status=Order.Status.COMPLETED
         ).exists()
         is_in_wishlist = Wishlist.objects.filter(student=request.user, course=course).exists()
 
-        # Check prerequisites status for current user
+        # Check prerequisites status for current student
         for p in course.prerequisite_requirements.select_related('required_course').all():
             has_passed = request.user.enrollments.filter(course=p.required_course, is_completed=True).exists()
             if not has_passed:
@@ -234,6 +261,10 @@ def course_detail(request, slug):
             'prerequisites': prerequisites,
             'prereqs_satisfied': prereqs_satisfied,
             'unmet_prereqs': unmet_prereqs,
+            'is_admin': is_admin,
+            'is_instructor': is_instructor,
+            'is_student': is_student,
+            'can_manage_course': can_manage_course,
         },
     )
 
@@ -242,11 +273,14 @@ def course_detail(request, slug):
 @require_POST
 def module_create(request, slug):
     """Add a new structured curriculum module to a course (author or admin)."""
-    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
-    if is_admin:
-        course = get_object_or_404(Course, slug=slug)
-    else:
-        course = get_object_or_404(Course, slug=slug, instructor=request.user)
+    course = get_object_or_404(Course, slug=slug)
+    if not is_course_manager(request.user, course):
+        return deny_role_redirect(
+            request,
+            "Permission denied. Only the course instructor or an administrator can add modules.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
 
     title = request.POST.get('title', '').strip()
     description = request.POST.get('description', '').strip()
@@ -278,10 +312,16 @@ def module_create(request, slug):
 @login_required
 @require_POST
 def add_course_review(request, slug):
-    """Submit a rating and review for a course."""
+    """Submit a rating and review for a course (enrolled students only)."""
     course = get_object_or_404(Course, slug=slug)
-    # Only enrolled students can review
-    if not course.enrollments.filter(student=request.user).exists() and not request.user.is_staff:
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only enrolled students can submit course reviews.",
+            'courses:course_detail',
+            slug=slug,
+        )
+    if not course.enrollments.filter(student=request.user).exists():
         messages.error(request, "Only students enrolled in this course can post a review.")
         return redirect('courses:course_detail', slug=slug)
 
@@ -306,6 +346,13 @@ def add_course_review(request, slug):
 def toggle_wishlist(request, slug):
     """Add or remove course from student's wishlist."""
     course = get_object_or_404(Course, slug=slug)
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only student accounts can save courses to a wishlist.",
+            'courses:course_detail',
+            slug=slug,
+        )
     item = Wishlist.objects.filter(student=request.user, course=course).first()
     if item:
         item.delete()
@@ -318,10 +365,13 @@ def toggle_wishlist(request, slug):
 
 @login_required
 def course_create(request):
-    """Create a new course (instructors only)."""
-    if not (request.user.is_instructor or request.user.is_staff or getattr(request.user, 'is_admin', False)):
-        messages.error(request, "Instructor privileges required to create courses.")
-        return redirect('courses:course_list')
+    """Create a new course (instructors or admins only)."""
+    if not (is_instructor_user(request.user) or is_admin_user(request.user)):
+        return deny_role_redirect(
+            request,
+            "Instructor privileges required to create courses.",
+            'courses:course_list',
+        )
 
     if request.method == 'POST':
         form = CourseForm(request.POST, request.FILES)
@@ -339,11 +389,14 @@ def course_create(request):
 @login_required
 def course_update(request, slug):
     """Update an existing course (owner or platform administrator)."""
-    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
-    if is_admin:
-        course = get_object_or_404(Course, slug=slug)
-    else:
-        course = get_object_or_404(Course, slug=slug, instructor=request.user)
+    course = get_object_or_404(Course, slug=slug)
+    if not is_course_manager(request.user, course):
+        return deny_role_redirect(
+            request,
+            "Permission denied. You can only edit courses you teach.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
 
     if request.method == 'POST':
         form = CourseForm(request.POST, request.FILES, instance=course)
@@ -359,11 +412,15 @@ def course_update(request, slug):
 @login_required
 def course_delete(request, slug):
     """Delete a course (owner or platform administrator can delete any course)."""
-    is_admin = request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
-    if is_admin:
-        course = get_object_or_404(Course, slug=slug)
-    else:
-        course = get_object_or_404(Course, slug=slug, instructor=request.user)
+    course = get_object_or_404(Course, slug=slug)
+    is_admin = is_admin_user(request.user)
+    if not is_course_manager(request.user, course):
+        return deny_role_redirect(
+            request,
+            "Permission denied. You can only delete courses you teach.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
 
     if request.method == 'POST':
         title = course.title
@@ -382,9 +439,12 @@ def course_delete(request, slug):
 @require_POST
 def toggle_course_block(request, slug):
     """Platform administrators can block or unblock any course from any instructor."""
-    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
-        messages.error(request, "Administrative privileges required to block or unblock courses.")
-        return redirect('courses:course_list')
+    if not is_admin_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Administrative privileges required to block or unblock courses.",
+            'courses:course_list',
+        )
 
     course = get_object_or_404(Course, slug=slug)
     course.is_blocked = not course.is_blocked

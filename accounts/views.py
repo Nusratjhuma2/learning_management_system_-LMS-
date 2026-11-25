@@ -11,6 +11,7 @@ from enrollments.models import Enrollment
 from payments.models import Order
 from .forms import ProfileUpdateForm, SignUpForm
 from .models import User
+from .permissions import is_student_user
 
 
 def signup_view(request):
@@ -45,50 +46,54 @@ def profile_view(request):
     else:
         form = ProfileUpdateForm(instance=request.user)
 
-    completed_orders = (
-        Order.objects.filter(user=request.user, status=Order.Status.COMPLETED)
-        .select_related('course', 'course__instructor', 'coupon')
-        .order_by('-created_at')
-    )
-    enrollments = (
-        Enrollment.objects.filter(student=request.user)
-        .select_related('course', 'course__instructor')
-        .order_by('-enrolled_at')
-    )
-
+    is_student = is_student_user(request.user)
     purchased_courses = []
-    ordered_course_ids = set()
 
-    for order in completed_orders:
-        ordered_course_ids.add(order.course_id)
-        purchased_courses.append({
-            'course': order.course,
-            'order': order,
-            'paid_amount': order.final_amount,
-            'original_price': order.course.price,
-            'discount_amount': order.discount_amount,
-            'coupon': order.coupon,
-            'date': order.created_at,
-            'is_free': order.course.is_free and order.final_amount == Decimal('0.00'),
-        })
+    if is_student:
+        completed_orders = (
+            Order.objects.filter(user=request.user, status=Order.Status.COMPLETED)
+            .select_related('course', 'course__instructor', 'coupon')
+            .order_by('-created_at')
+        )
+        enrollments = (
+            Enrollment.objects.filter(student=request.user)
+            .select_related('course', 'course__instructor')
+            .order_by('-enrolled_at')
+        )
 
-    for enr in enrollments:
-        if enr.course_id not in ordered_course_ids:
-            course = enr.course
+        ordered_course_ids = set()
+
+        for order in completed_orders:
+            ordered_course_ids.add(order.course_id)
             purchased_courses.append({
-                'course': course,
-                'order': None,
-                'paid_amount': Decimal('0.00') if course.is_free else course.effective_price,
-                'original_price': course.price,
-                'discount_amount': course.savings_amount,
-                'coupon': None,
-                'date': enr.enrolled_at,
-                'is_free': course.is_free,
+                'course': order.course,
+                'order': order,
+                'paid_amount': order.final_amount,
+                'original_price': order.course.price,
+                'discount_amount': order.discount_amount,
+                'coupon': order.coupon,
+                'date': order.created_at,
+                'is_free': order.course.is_free and order.final_amount == Decimal('0.00'),
             })
+
+        for enr in enrollments:
+            if enr.course_id not in ordered_course_ids:
+                course = enr.course
+                purchased_courses.append({
+                    'course': course,
+                    'order': None,
+                    'paid_amount': Decimal('0.00') if course.is_free else course.effective_price,
+                    'original_price': course.price,
+                    'discount_amount': course.savings_amount,
+                    'coupon': None,
+                    'date': enr.enrolled_at,
+                    'is_free': course.is_free,
+                })
 
     return render(request, 'accounts/profile.html', {
         'form': form,
         'purchased_courses': purchased_courses,
+        'is_student_profile': is_student,
     })
 
 
@@ -198,7 +203,7 @@ def instructor_detail(request, username):
     )
 
     enrolled_course_ids = set()
-    if request.user.is_authenticated:
+    if is_student_user(request.user):
         enrolled_course_ids = set(
             Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
         ) | set(

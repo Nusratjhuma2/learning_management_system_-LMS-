@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from django.db import models
+from accounts.permissions import deny_role_redirect, is_admin_user, is_instructor_user, is_student_user
 from courses.models import Course
 from enrollments.models import Enrollment
 from .forms import CouponForm
@@ -20,7 +21,15 @@ def checkout(request, course_slug):
     Checkout portal for enrolling in paid courses.
     Supports coupon discounts, automatic zero-amount enrollment, and gateway selection.
     """
-    course = get_object_or_404(Course, slug=course_slug, status=Course.Status.PUBLISHED)
+    course = get_object_or_404(Course, slug=course_slug, status=Course.Status.PUBLISHED, is_blocked=False)
+
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only student accounts can purchase or enroll in courses.",
+            'courses:course_detail',
+            slug=course.slug,
+        )
 
     # If student is already enrolled or already bought the course
     already_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
@@ -118,6 +127,13 @@ def process_mock_payment(request, order_id):
     Executes mock / sandbox payment checkout.
     Marks order completed, creates PaymentTransaction log, and auto-enrolls student.
     """
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Only student accounts can complete course payments.",
+            'courses:course_list',
+        )
+
     order = get_object_or_404(Order, order_id=order_id, user=request.user)
 
     if order.status == Order.Status.COMPLETED:
@@ -166,9 +182,9 @@ def order_invoice(request, order_id):
     )
 
     is_buyer = order.user == request.user
-    is_staff = request.user.is_staff or getattr(request.user, 'is_admin', False)
+    is_admin = is_admin_user(request.user)
 
-    if not is_buyer and not is_staff:
+    if not is_buyer and not is_admin:
         messages.error(request, "Permission denied.")
         return redirect('courses:course_list')
 
@@ -185,6 +201,12 @@ def student_order_history(request):
     """
     Lists past orders and invoices for the logged in student.
     """
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Order history is available only for student accounts.",
+        )
+
     orders = Order.objects.filter(
         user=request.user
     ).select_related('course').order_by('-created_at')
@@ -195,11 +217,11 @@ def student_order_history(request):
 
 
 def _is_coupon_admin(user):
-    return user.is_authenticated and (getattr(user, 'is_admin', False) or user.is_staff or user.is_superuser)
+    return is_admin_user(user)
 
 
 def _is_coupon_instructor(user):
-    return user.is_authenticated and (getattr(user, 'is_instructor', False) or getattr(user, 'role', '') == 'instructor')
+    return is_instructor_user(user)
 
 
 def _can_manage_coupons(user):

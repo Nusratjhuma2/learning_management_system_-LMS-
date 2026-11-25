@@ -14,6 +14,13 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.models import ActiveUserSession, SecurityAuditLog, TrustedDevice
+from accounts.permissions import (
+    deny_role_redirect,
+    get_dashboard_url_name,
+    is_admin_user,
+    is_instructor_user,
+    is_student_user,
+)
 from assignments.models import Assignment, AssignmentSubmission
 from courses.models import Course
 from discussions.models import DiscussionThread
@@ -27,13 +34,7 @@ User = get_user_model()
 @login_required
 def dashboard_router(request):
     """Dispatches the user to their designated dashboard view based on account role."""
-    role = getattr(request.user, 'role', 'student')
-    if request.user.is_superuser or role == 'admin':
-        return redirect('dashboard:admin_dashboard')
-    elif role == 'instructor':
-        return redirect('dashboard:instructor_dashboard')
-    else:
-        return redirect('dashboard:student_dashboard')
+    return redirect(get_dashboard_url_name(request.user))
 
 
 @login_required
@@ -42,6 +43,12 @@ def student_dashboard(request):
     Candidate & Student Command Center.
     Curriculum progress, resume study buttons, certificates, security sessions, and badges.
     """
+    if not is_student_user(request.user):
+        return deny_role_redirect(
+            request,
+            "The Student Portal is restricted to student accounts.",
+        )
+
     user = request.user
     enrollments = Enrollment.objects.filter(
         student=user
@@ -77,9 +84,11 @@ def instructor_dashboard(request):
     Instructor Studio & Grading Command Center.
     Course metrics, student enrollments, assignment grading queue, and student Q&A.
     """
-    if not (request.user.role == 'instructor' or request.user.is_staff or request.user.is_superuser):
-        messages.error(request, "Access restricted to instructors.")
-        return redirect('dashboard:student_dashboard')
+    if not is_instructor_user(request.user):
+        return deny_role_redirect(
+            request,
+            "Access restricted to instructor accounts.",
+        )
 
     courses = Course.objects.filter(instructor=request.user).annotate(
         student_count=Count('enrollments')
@@ -124,9 +133,8 @@ def admin_dashboard(request):
     Executive Security & Platform Operations Console.
     Real-time security audit log stream, active session management, platform metrics.
     """
-    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
-        messages.error(request, "Administrative privileges required.")
-        return redirect('dashboard:instructor_dashboard' if getattr(request.user, 'role', '') == 'instructor' else 'dashboard:student_dashboard')
+    if not is_admin_user(request.user):
+        return deny_role_redirect(request, "Administrative privileges required.")
 
     total_users = User.objects.count()
     total_enrollments = Enrollment.objects.count()
@@ -266,9 +274,8 @@ def admin_dashboard(request):
 @require_POST
 def terminate_session(request, session_pk):
     """Terminates an active session from the admin console."""
-    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
-        messages.error(request, "Permission denied.")
-        return redirect('dashboard:admin_dashboard')
+    if not is_admin_user(request.user):
+        return deny_role_redirect(request, "Permission denied.")
 
     active_sess = get_object_or_404(ActiveUserSession, pk=session_pk)
     target_user = active_sess.user
@@ -295,7 +302,7 @@ def terminate_session(request, session_pk):
 @login_required
 def admin_dashboard_api(request):
     """JSON API for admin dashboard real-time data refresh."""
-    if not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
+    if not is_admin_user(request.user):
         return JsonResponse({'error': 'Forbidden'}, status=403)
 
     total_enrollments = Enrollment.objects.count()
